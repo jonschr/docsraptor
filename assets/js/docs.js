@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const modalSuggestions = document.querySelector(
 		'.docs-search-suggestions-modal'
 	);
-	modalSuggestions.classList.add('hidden');
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
 
@@ -52,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	function hideModal() {
 		modal.classList.remove('show');
-		modalSuggestions.classList.add('hidden');
+		modalSuggestions.innerHTML = '';
 		modalInput.value = '';
 		currentSuggestionIndex = -1;
 	}
@@ -92,18 +91,14 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	// Search in modal
-	let debounceTimer;
 	modalInput.addEventListener('input', function () {
-		clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => {
-			const query = this.value.trim();
-			if (query.length < 2) {
-				modalSuggestions.classList.add('hidden');
-				currentSuggestionIndex = -1;
-				return;
-			}
-			filterSuggestions(query);
-		}, 300);
+		const query = this.value.trim();
+		if (query.length < 2) {
+			modalSuggestions.innerHTML = '';
+			currentSuggestionIndex = -1;
+			return;
+		}
+		filterSuggestions(query);
 	});
 
 	// Keyboard navigation
@@ -167,11 +162,10 @@ document.addEventListener('DOMContentLoaded', function () {
 					post.title.rendered +
 					'</a></li>';
 			});
-			html += '</ul>';
 			modalSuggestions.innerHTML = html;
-			modalSuggestions.classList.remove('hidden');
+			modalSuggestions.querySelector('ul').style.opacity = '1';
 			console.log('Suggestions HTML set:', html);
-			console.log('Suggestions hidden class removed');
+			console.log('Suggestions opacity set to 1');
 			console.log(
 				'Suggestions element outerHTML:',
 				modalSuggestions.outerHTML
@@ -185,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				document.querySelectorAll('.docs-search-suggestions-modal a')
 			);
 		} else {
-			modalSuggestions.classList.add('hidden');
+			modalSuggestions.innerHTML = '';
 			currentSuggestionIndex = -1;
 		}
 	}

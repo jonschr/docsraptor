@@ -327,14 +327,15 @@ body.admin-bar .docs-toc-content {
 .docs-search-modal-content {
 	width: 600px;
 	max-width: 90vw;
-	background: white;
 	border-radius: 8px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	overflow: visible;
+	display: flex;
+	flex-direction: column;
+	height: 300px;
 }
 
 .docs-search-modal-input {
-	width: 100%;
+	flex-shrink: 0;
 	padding: 20px;
 	font-size: 24px;
 	border: 2px solid var(--docsraptor-primary-color);
@@ -344,14 +345,19 @@ body.admin-bar .docs-toc-content {
 	background: white;
 }
 
-.docs-search-suggestions-modal.hidden {
-	display: none;
+.docs-search-suggestions-modal {
+	flex: 1;
+	height: 200px;
+	overflow-y: auto;
 }
 
 .docs-search-suggestions-modal ul {
 	list-style: none;
 	padding: 0;
 	margin: 0;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	background: white;
 }
 
 .docs-search-suggestions-modal li {
