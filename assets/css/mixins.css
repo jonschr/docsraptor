@@ -1,4 +1,4 @@
-/* Media Query Mixins/Utilities for Elodin Resources */
+/* Media Query Mixins/Utilities for Docs Raptor */
 
 /* Breakpoint definitions */
 @media (max-width: 768px) {
@@ -8,19 +8,19 @@
 	.desktop-only {
 		display: none !important;
 	}
-	.resources-container {
+	.docs-container {
 		flex-direction: column;
 	}
-	.resources-sidebar {
+	.docs-sidebar {
 		position: static;
 		width: 100% !important;
 		flex-shrink: 1;
-		padding: 1em var(--elodin-resources-spacing);
+		padding: 1em var(--elodin.docs-spacing);
 		box-shadow: none;
 		border-right: none;
-		border-bottom: 1px solid var(--elodin-resources-border-color);
+		border-bottom: 1px solid var(--elodin.docs-border-color);
 	}
-	.resources-toc {
+	.docs-toc {
 		position: static;
 		width: 100%;
 	}

@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Set search input placeholder with OS-specific keys
 	const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	const keyCombo = isMac ? '⌘K' : 'Ctrl+K';
-	const searchInput = document.querySelector('.resources-search-input');
+	const searchInput = document.querySelector('.docs-search-input');
 	if (searchInput) {
 		searchInput.placeholder = `Search... (${keyCombo})`;
 	}
 
 	// Accordion functionality for sidebar
-	const toggles = document.querySelectorAll('.resource-type-toggle');
+	const toggles = document.querySelectorAll('.docs-category-toggle');
 	toggles.forEach((toggle) => {
 		const handleToggle = function () {
 			const list = this.nextElementSibling;
@@ -27,11 +27,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	// Search modal
-	const modal = document.getElementById('resources-search-modal');
-	const modalInput = document.getElementById('resources-modal-search');
-	const sidebarInput = document.querySelector('.resources-search-input');
+	const modal = document.getElementById('docs-search-modal');
+	const modalInput = document.getElementById('docs-modal-search');
+	const sidebarInput = document.querySelector('.docs-search-input');
 	const modalSuggestions = document.querySelector(
-		'.resources-search-suggestions-modal'
+		'.docs-search-suggestions-modal'
 	);
 	let currentSuggestionIndex = -1;
 
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Keyboard navigation
 	modalInput.addEventListener('keydown', function (e) {
 		const suggestions = document.querySelectorAll(
-			'.resources-search-suggestions-modal a'
+			'.docs-search-suggestions-modal a'
 		);
 		if (suggestions.length === 0) return;
 
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	function fetchSuggestionsModal(query) {
 		const url =
-			'/wp-json/wp/v2/resources?search=' +
+			'/wp-json/wp/v2/docs?search=' +
 			encodeURIComponent(query) +
 			'&per_page=10';
 		fetch(url)
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					currentSuggestionIndex = -1;
 					updateSuggestionHighlight(
 						document.querySelectorAll(
-							'.resources-search-suggestions-modal a'
+							'.docs-search-suggestions-modal a'
 						)
 					);
 				} else {
@@ -163,9 +163,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	// Generate TOC
-	const content = document.querySelector('.resources-content');
+	const content = document.querySelector('.docs-content');
 	const headings = content.querySelectorAll('h2, h3');
-	const tocContent = document.querySelector('.resources-toc-list');
+	const tocContent = document.querySelector('.docs-toc-list');
 
 	if (headings.length >= 1) {
 		// Show TOC if at least 1 heading

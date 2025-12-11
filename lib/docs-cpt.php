@@ -1,8 +1,8 @@
 <?php
 /**
- * Registers the Elodin Resources custom post type.
+ * Registers the Docs Raptor custom post type.
  *
- * @package elodin-resources
+ * @package docsraptor
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,16 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Registers the Elodin Resources custom post type.
+ * Registers the Docs Raptor custom post type.
  */
-add_action( 'init', 'elodin_resources_register_resources_post_types' );
-function elodin_resources_register_resources_post_types() {
+add_action( 'init', 'docsraptor_register_docs_post_types' );
+function docsraptor_register_docs_post_types() {
 
 	// Name
-	$name_plural   = 'Resources';
-	$name_singular = 'Resource';
-	$post_type     = 'resources';
-	$slug          = 'resources';
+	$name_plural   = 'Docs';
+	$name_singular = 'Doc';
+	$post_type     = 'docs';
+	$slug          = 'docs';
 	$icon          = 'lightbulb'; // https://developer.wordpress.org/resource/dashicons/
 	$supports      = array( 'title', 'editor', 'thumbnail' );
 

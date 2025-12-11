@@ -1,8 +1,8 @@
-/* GeneratePress Defaults for Elodin Resources */
+/* GeneratePress Defaults for Docs Raptor */
 
-/* Full width layout for single resources pages */
-body.single-resources .site.grid-container,
-body.single-resources .site.grid-container .site-content {
+/* Full width layout for single docs pages */
+body.single-docs .site.grid-container,
+body.single-docs .site.grid-container .site-content {
 	width: 100%;
 	max-width: 100%;
 	padding: 0;

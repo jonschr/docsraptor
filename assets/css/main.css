@@ -1,4 +1,4 @@
-/* Elodin Resources Main CSS */
+/* Docs Raptor Main CSS */
 
 /* Import variables */
 @import url('variables.css');
@@ -10,4 +10,4 @@
 @import url('gb-defaults.css');
 
 /* Import component styles */
-@import url('resources.css');
+@import url('docs.css');
