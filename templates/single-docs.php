@@ -63,7 +63,7 @@ if ( have_posts() ) :
 						
 						function display_terms_hierarchy($terms, $current_post_id, $deepest_term_id, $level = 0) {
 							if ($level === 0) {
-								echo '<ul class="resource-list open">';
+								echo '<ul class="docs-list open">';
 							}
 							foreach ($terms as $term) {
 								$post_terms = wp_get_post_terms($current_post_id, 'docs-categories', array('fields' => 'ids'));
@@ -76,9 +76,9 @@ if ( have_posts() ) :
 								
 								$has_children = isset($term->children) && !empty($term->children);
 								?>
-								<li class="resource-type-item <?php echo $current_term ? 'current' : ''; ?>">
-									<div class="resource-type <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $current_term ? 'current' : ''; ?> <?php echo $has_children ? 'has-children' : ''; ?>">
-										<div class="resource-type-toggle" role="button" tabindex="0" aria-expanded="<?php echo $current_term ? 'true' : 'false'; ?>">
+								<li class="docs-category-item <?php echo $current_term ? 'current' : ''; ?>">
+									<div class="docs-category <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $current_term ? 'current' : ''; ?> <?php echo $has_children ? 'has-children' : ''; ?>">
+										<div class="docs-category-toggle" role="button" tabindex="0" aria-expanded="<?php echo $current_term ? 'true' : 'false'; ?>">
 											<?php echo esc_html($term->name); ?>
 										</div>
 										<?php
@@ -98,9 +98,9 @@ if ( have_posts() ) :
 										$posts = get_posts($args);
 										if (!empty($posts) || $has_children) :
 											?>
-											<ul class="resource-list <?php echo $current_term ? 'open' : ''; ?>">
+											<ul class="docs-list <?php echo $current_term ? 'open' : ''; ?>">
 												<?php foreach ($posts as $post_item) : ?>
-													<li class="resource-post <?php echo (get_the_ID() === $post_item->ID && $term->term_id === $deepest_term_id) ? 'current' : ''; ?>">
+													<li class="docs-post <?php echo (get_the_ID() === $post_item->ID && $term->term_id === $deepest_term_id) ? 'current' : ''; ?>">
 														<a href="<?php echo get_permalink($post_item->ID); ?>">
 															<?php echo esc_html($post_item->post_title); ?>
 														</a>
@@ -141,7 +141,7 @@ if ( have_posts() ) :
 							foreach ( $uncategorized_posts as $post_item ) :
 								$current = ( get_the_ID() === $post_item->ID ) ? 'current' : '';
 								?>
-								<div class="resource-type uncategorized-post <?php echo $current; ?>">
+								<div class="docs-type uncategorized-post <?php echo $current; ?>">
 									<a href="<?php echo get_permalink( $post_item->ID ); ?>">
 										<?php echo esc_html( $post_item->post_title ); ?>
 									</a>
@@ -212,7 +212,7 @@ if ( have_posts() ) :
 		<div id="docs-search-modal" class="docs-search-modal">
 			<div class="docs-search-modal-content">
 				<input type="search" id="docs-modal-search" placeholder="Search docs..." class="docs-search-modal-input" />
-				<div class="docs-search-suggestions-modal" style="display: none;"></div>
+				<div class="docs-search-suggestions-modal"></div>
 			</div>
 		</div>
 

@@ -53,28 +53,28 @@ body.admin-bar .docs-toc-content {
 	top: calc(var(--docsraptor-header-height-scrolled) + 32px);
 }
 
-.resource-type {
+.docs-category {
 	margin-bottom: 2px;
 	border-radius: 4px;
 	overflow: hidden;
 }
 
-.resource-type.child {
+.docs-category.child {
 	background-color: rgba(0, 0, 0, 0.03);
 	border: 1px solid rgba(0, 0, 0, 0.05);
 
-	ul.resource-list {
+	ul.docs-list {
 		margin: 0 6px;
 		padding-bottom: 6px;
 	}
 }
 
-.resource-type.child .resource-type-toggle {
+.docs-category.child .docs-category-toggle {
 	font-size: 14px;
 	padding: 10px 12px;
 }
 
-.resource-type-toggle {
+.docs-category-toggle {
 	width: 100%;
 	padding: 6px 0;
 	background: transparent;
@@ -89,13 +89,13 @@ body.admin-bar .docs-toc-content {
 	border-radius: 0;
 }
 
-.resource-type-toggle:hover {
+.docs-category-toggle:hover {
 	background: transparent;
 	border-color: transparent;
 	color: var(--docsraptor-primary-color);
 }
 
-.resource-type-toggle::after {
+.docs-category-toggle::after {
 	content: '';
 	position: absolute;
 	right: 16px;
@@ -111,18 +111,18 @@ body.admin-bar .docs-toc-content {
 	color: #666;
 }
 
-.resource-type-toggle[aria-expanded='true']::after {
+.docs-category-toggle[aria-expanded='true']::after {
 	transform: translateY(-50%) rotate(90deg);
 }
 
-.resource-type.current .resource-type-toggle {
+.docs-category.current .docs-category-toggle {
 	background: transparent;
 	/* color: var(--docsraptor-primary-color); */
 	border-color: transparent;
 	font-weight: 600;
 }
 
-.resource-type.uncategorized-post a {
+.docs-type.uncategorized-post a {
 	display: block;
 	padding: 6px 0;
 	color: var(--docsraptor-text-color);
@@ -132,16 +132,16 @@ body.admin-bar .docs-toc-content {
 	transition: color 0.2s ease;
 }
 
-.resource-type.uncategorized-post a:hover {
+.docs-type.uncategorized-post a:hover {
 	color: var(--docsraptor-primary-color);
 }
 
-.resource-type.uncategorized-post.current a {
+.docs-type.uncategorized-post.current a {
 	color: var(--docsraptor-primary-color);
 	font-weight: 600;
 }
 
-.resource-list {
+.docs-list {
 	display: none;
 	list-style: none;
 	padding: 0;
@@ -153,26 +153,26 @@ body.admin-bar .docs-toc-content {
 	background: transparent;
 }
 
-.resource-list.open {
+.docs-list.open {
 	display: block;
 	max-height: 10000px;
 	opacity: 1;
 }
 
-.resource-list li {
+.docs-list li {
 	padding: 0;
 	transition: background 0.2s ease;
 }
 
-.resource-list li:hover {
+.docs-list li:hover {
 	background: transparent;
 }
 
-.resource-list li.resource-post.current {
+.docs-list li.docs-post.current {
 	/* background: var(--docsraptor-active-bg); */
 }
 
-.resource-list li.resource-post.current a {
+.docs-list li.docs-post.current a {
 	color: var(--docsraptor-primary-color);
 	/* border: 1px solid var(--docsraptor-border-color); */
 	/* font-weight: 600; */
@@ -180,7 +180,7 @@ body.admin-bar .docs-toc-content {
 	/* background-color: white; */
 }
 
-.resource-list a {
+.docs-list a {
 	display: block;
 	padding: 6px 12px;
 	color: var(--docsraptor-text-color);
@@ -189,7 +189,7 @@ body.admin-bar .docs-toc-content {
 	font-size: 13px;
 }
 
-.resource-list a:hover {
+.docs-list a:hover {
 	color: var(--docsraptor-primary-color);
 }
 
@@ -311,23 +311,26 @@ body.admin-bar .docs-toc-content {
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100%;
-	height: 100%;
+	width: 100vw;
+	height: 100vh;
 	background: rgba(0, 0, 0, 0.5);
 	display: none;
 	z-index: 1000;
-	align-items: center;
-	justify-content: center;
 }
 
 .docs-search-modal.show {
 	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .docs-search-modal-content {
-	position: relative;
 	width: 600px;
 	max-width: 90vw;
+	background: white;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	overflow: visible;
 }
 
 .docs-search-modal-input {
@@ -338,20 +341,11 @@ body.admin-bar .docs-toc-content {
 	border-radius: 8px;
 	outline: none;
 	box-sizing: border-box;
+	background: white;
 }
 
-.docs-search-suggestions-modal {
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	background: white;
-	border: 1px solid var(--docsraptor-border-color);
-	border-top: none;
-	max-height: 300px;
-	overflow-y: auto;
-	z-index: 1001;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.docs-search-suggestions-modal.hidden {
+	display: none;
 }
 
 .docs-search-suggestions-modal ul {

@@ -33,19 +33,41 @@ document.addEventListener('DOMContentLoaded', function () {
 	const modalSuggestions = document.querySelector(
 		'.docs-search-suggestions-modal'
 	);
+	modalSuggestions.classList.add('hidden');
 	let currentSuggestionIndex = -1;
+	let allDocs = null;
 
 	function showModal() {
 		modal.classList.add('show');
+		console.log('Modal classList:', modal.classList);
+		console.log('Modal display:', getComputedStyle(modal).display);
+		console.log('Modal offsetHeight:', modal.offsetHeight);
 		modalInput.focus();
 		currentSuggestionIndex = -1;
+		// Fetch all docs if not already loaded
+		if (!allDocs) {
+			fetchAllDocs();
+		}
 	}
 
 	function hideModal() {
 		modal.classList.remove('show');
-		modalSuggestions.style.display = 'none';
+		modalSuggestions.classList.add('hidden');
 		modalInput.value = '';
 		currentSuggestionIndex = -1;
+	}
+
+	function fetchAllDocs() {
+		const url = '/wp-json/wp/v2/docs?per_page=100';
+		fetch(url)
+			.then((response) => response.json())
+			.then((data) => {
+				allDocs = data;
+				console.log('All docs loaded:', data.length);
+			})
+			.catch((error) => {
+				console.error('Error fetching all docs:', error);
+			});
 	}
 
 	// Keyboard shortcut
@@ -70,14 +92,18 @@ document.addEventListener('DOMContentLoaded', function () {
 	});
 
 	// Search in modal
+	let debounceTimer;
 	modalInput.addEventListener('input', function () {
-		const query = this.value.trim();
-		if (query.length < 2) {
-			modalSuggestions.style.display = 'none';
-			currentSuggestionIndex = -1;
-			return;
-		}
-		fetchSuggestionsModal(query);
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			const query = this.value.trim();
+			if (query.length < 2) {
+				modalSuggestions.classList.add('hidden');
+				currentSuggestionIndex = -1;
+				return;
+			}
+			filterSuggestions(query);
+		}, 300);
 	});
 
 	// Keyboard navigation
@@ -116,43 +142,52 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	function fetchSuggestionsModal(query) {
-		const url =
-			'/wp-json/wp/v2/docs?search=' +
-			encodeURIComponent(query) +
-			'&per_page=10';
-		fetch(url)
-			.then((response) => response.json())
-			.then((data) => {
-				if (data.length > 0) {
-					let html = '<ul>';
-					data.forEach((post) => {
-						html +=
-							'<li><a href="' +
-							post.link +
-							'">' +
-							post.title.rendered +
-							'</a></li>';
-					});
-					html += '</ul>';
-					modalSuggestions.innerHTML = html;
-					modalSuggestions.style.display = 'block';
-					currentSuggestionIndex = -1;
-					updateSuggestionHighlight(
-						document.querySelectorAll(
-							'.docs-search-suggestions-modal a'
-						)
-					);
-				} else {
-					modalSuggestions.style.display = 'none';
-					currentSuggestionIndex = -1;
-				}
-			})
-			.catch((error) => {
-				console.error('Error fetching suggestions:', error);
-				modalSuggestions.style.display = 'none';
-				currentSuggestionIndex = -1;
+	function filterSuggestions(query) {
+		if (!allDocs) {
+			console.log('Docs not loaded yet');
+			return;
+		}
+		console.log('Filtering docs for query:', query);
+		// Filter data based on search query
+		const filteredData = allDocs
+			.filter((post) =>
+				post.title.rendered.toLowerCase().includes(query.toLowerCase())
+			)
+			.slice(0, 10); // Limit to 10 results
+		console.log('Filtered data length:', filteredData.length);
+		if (filteredData.length > 0) {
+			console.log('modalSuggestions element:', modalSuggestions);
+			let html = '<ul>';
+			filteredData.forEach((post) => {
+				console.log('Post title:', post.title.rendered);
+				html +=
+					'<li><a href="' +
+					post.link +
+					'">' +
+					post.title.rendered +
+					'</a></li>';
 			});
+			html += '</ul>';
+			modalSuggestions.innerHTML = html;
+			modalSuggestions.classList.remove('hidden');
+			console.log('Suggestions HTML set:', html);
+			console.log('Suggestions hidden class removed');
+			console.log(
+				'Suggestions element outerHTML:',
+				modalSuggestions.outerHTML
+			);
+			console.log(
+				'Suggestions offsetHeight:',
+				modalSuggestions.offsetHeight
+			);
+			currentSuggestionIndex = -1;
+			updateSuggestionHighlight(
+				document.querySelectorAll('.docs-search-suggestions-modal a')
+			);
+		} else {
+			modalSuggestions.classList.add('hidden');
+			currentSuggestionIndex = -1;
+		}
 	}
 
 	// Click outside to close
