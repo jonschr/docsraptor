@@ -1,0 +1,18 @@
+/* CSS Custom Properties for Elodin Resources */
+:root {
+	--elodin-resources-primary-color: #007cba;
+	--elodin-resources-secondary-color: #f5f5f5;
+	--elodin-resources-text-color: #333;
+	--elodin-resources-border-color: #ddd;
+	--elodin-resources-active-bg: #f7f7f7;
+	--elodin-resources-sidebar-width: 300px;
+	--elodin-resources-toc-width: 300px;
+	--elodin-resources-spacing: 20px;
+	--elodin-resources-font-size-base: 16px;
+	--elodin-resources-line-height: 1.6;
+	--elodin-resources-header-height: 0px; /* Adjust based on theme header height */
+	--elodin-resources-header-height-scrolled: 0px; /* Header height when scrolled */
+	--heading-1: 2.5rem;
+	--heading-2: 2rem;
+	--heading-3: 1.5rem;
+}

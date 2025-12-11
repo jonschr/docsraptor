@@ -1,0 +1,13 @@
+/* Elodin Resources Main CSS */
+
+/* Import variables */
+@import url('variables.css');
+
+/* Import mixins/utilities */
+@import url('mixins.css');
+
+/* Import theme defaults */
+@import url('gb-defaults.css');
+
+/* Import component styles */
+@import url('resources.css');
