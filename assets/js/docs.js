@@ -234,7 +234,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			filteredData.forEach((post) => {
 				console.log('Post title:', post.title.rendered);
 				const path = getTermPath(post);
-				const snippet = getSnippet(stripHtml(post.content.rendered), query);
+				const snippet = getSnippet(
+					stripHtml(post.content.rendered),
+					query
+				);
 				html +=
 					'<li><a href="' +
 					post.link +
