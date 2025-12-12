@@ -146,7 +146,8 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Filter data based on search query
 		const filteredData = allDocs
 			.filter((post) =>
-				post.title.rendered.toLowerCase().includes(query.toLowerCase())
+				post.title.rendered.toLowerCase().includes(query.toLowerCase()) ||
+				post.content.rendered.toLowerCase().includes(query.toLowerCase())
 			)
 			.slice(0, 10); // Limit to 10 results
 		console.log('Filtered data length:', filteredData.length);
