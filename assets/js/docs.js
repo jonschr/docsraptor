@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	);
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
+	let allTerms = null;
 
 	function showModal() {
 		modal.classList.add('show');
@@ -57,15 +58,26 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function fetchAllDocs() {
-		const url = '/wp-json/wp/v2/docs?per_page=100';
-		fetch(url)
-			.then((response) => response.json())
-			.then((data) => {
-				allDocs = data;
-				console.log('All docs loaded:', data.length);
+		const docsUrl = '/wp-json/wp/v2/docs?per_page=100&_embed';
+		const termsUrl = '/wp-json/wp/v2/docs-categories?per_page=100';
+		Promise.all([
+			fetch(docsUrl).then((response) => response.json()),
+			fetch(termsUrl).then((response) => response.json()),
+		])
+			.then(([docs, terms]) => {
+				allDocs = docs;
+				allTerms = terms.reduce((map, term) => {
+					map[term.id] = term;
+					return map;
+				}, {});
+				console.log(
+					'All docs and terms loaded:',
+					docs.length,
+					terms.length
+				);
 			})
 			.catch((error) => {
-				console.error('Error fetching all docs:', error);
+				console.error('Error fetching docs or terms:', error);
 			});
 	}
 
@@ -137,6 +149,66 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
+	function getTermPath(post) {
+		const postTerms =
+			post._embedded && post._embedded['wp:term']
+				? post._embedded['wp:term']
+						.flat()
+						.filter((term) => term.taxonomy === 'docs-categories')
+				: [];
+		if (postTerms.length === 0) return '';
+		// Find deepest term
+		let deepest = postTerms[0];
+		let maxDepth = 0;
+		for (let term of postTerms) {
+			let depth = 0;
+			let current = term;
+			while (current.parent) {
+				depth++;
+				current = allTerms[current.parent];
+				if (!current) break;
+			}
+			if (depth > maxDepth) {
+				maxDepth = depth;
+				deepest = term;
+			}
+		}
+		// Build path
+		const path = [];
+		let current = deepest;
+		while (current) {
+			path.unshift(current.name);
+			current = current.parent ? allTerms[current.parent] : null;
+		}
+		return path.join(' > ') + ' > ';
+	}
+
+	function getSnippet(content, query) {
+		const lines = content.split('\n');
+		const lowerQuery = query.toLowerCase();
+		let matchLineIndex = -1;
+		for (let i = 0; i < lines.length; i++) {
+			if (lines[i].toLowerCase().includes(lowerQuery)) {
+				matchLineIndex = i;
+				break;
+			}
+		}
+		if (matchLineIndex === -1) {
+			// No match, show first 3 lines joined
+			return lines.slice(0, 3).join(' ');
+		}
+		// Show up to 3 lines around the match, joined
+		const start = Math.max(0, matchLineIndex - 1);
+		const end = Math.min(lines.length, start + 3);
+		return lines.slice(start, end).join(' ');
+	}
+
+	function stripHtml(html) {
+		const tmp = document.createElement('DIV');
+		tmp.innerHTML = html;
+		return tmp.textContent || tmp.innerText || '';
+	}
+
 	function filterSuggestions(query) {
 		if (!allDocs) {
 			console.log('Docs not loaded yet');
@@ -145,9 +217,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		console.log('Filtering docs for query:', query);
 		// Filter data based on search query
 		const filteredData = allDocs
-			.filter((post) =>
-				post.title.rendered.toLowerCase().includes(query.toLowerCase()) ||
-				post.content.rendered.toLowerCase().includes(query.toLowerCase())
+			.filter(
+				(post) =>
+					post.title.rendered
+						.toLowerCase()
+						.includes(query.toLowerCase()) ||
+					stripHtml(post.content.rendered)
+						.toLowerCase()
+						.includes(query.toLowerCase())
 			)
 			.slice(0, 10); // Limit to 10 results
 		console.log('Filtered data length:', filteredData.length);
@@ -156,12 +233,18 @@ document.addEventListener('DOMContentLoaded', function () {
 			let html = '<ul>';
 			filteredData.forEach((post) => {
 				console.log('Post title:', post.title.rendered);
+				const path = getTermPath(post);
+				const snippet = getSnippet(stripHtml(post.content.rendered), query);
 				html +=
 					'<li><a href="' +
 					post.link +
-					'">' +
+					'"><span class="search-path">' +
+					path +
+					'</span><strong>' +
 					post.title.rendered +
-					'</a></li>';
+					'</strong><div class="search-snippet">' +
+					snippet +
+					'</div></a></li>';
 			});
 			modalSuggestions.innerHTML = html;
 			modalSuggestions.querySelector('ul').style.opacity = '1';
