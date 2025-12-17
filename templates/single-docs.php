@@ -58,7 +58,43 @@ if ( have_posts() ) :
 								}
 							}
 							
+							// Filter out empty terms (no posts and no children with posts)
+							$organized_terms = array_filter($organized_terms, 'term_has_content');
+							
 							return $organized_terms;
+						}
+						
+						// Check if a term has posts or children with posts
+						function term_has_content($term) {
+							// Check if term has posts directly
+							$args = array(
+								'post_type' => 'docs',
+								'tax_query' => array(
+									array(
+										'taxonomy' => 'docs-categories',
+										'field' => 'term_id',
+										'terms' => $term->term_id,
+										'include_children' => false,
+									),
+								),
+								'posts_per_page' => 1,
+								'fields' => 'ids',
+							);
+							$posts = get_posts($args);
+							if (!empty($posts)) {
+								return true;
+							}
+							
+							// Check if any children have content
+							if (isset($term->children) && !empty($term->children)) {
+								// Filter children recursively
+								$term->children = array_filter($term->children, 'term_has_content');
+								if (!empty($term->children)) {
+									return true;
+								}
+							}
+							
+							return false;
 						}
 						
 						function display_terms_hierarchy($terms, $current_post_id, $deepest_term_id, $level = 0) {
