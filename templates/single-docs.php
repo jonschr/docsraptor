@@ -111,31 +111,35 @@ if ( have_posts() ) :
 								$current_term = in_array($term->term_id, $all_current_terms);
 								
 								$has_children = isset($term->children) && !empty($term->children);
+								
+								// Check if term has posts
+								$term_posts_args = array(
+									'post_type' => 'docs',
+									'tax_query' => array(
+										array(
+											'taxonomy' => 'docs-categories',
+											'field' => 'term_id',
+											'terms' => $term->term_id,
+											'include_children' => false,
+										),
+									),
+									'posts_per_page' => -1,
+									'orderby' => 'menu_order title',
+									'order' => 'ASC',
+								);
+								$term_posts = get_posts($term_posts_args);
+								$has_content = !empty($term_posts) || $has_children;
 								?>
 								<li class="docs-category-item <?php echo $current_term ? 'current' : ''; ?>">
-									<div class="docs-category <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $current_term ? 'current' : ''; ?> <?php echo $has_children ? 'has-children' : ''; ?>">
-										<div class="docs-category-toggle" role="button" tabindex="0" aria-expanded="<?php echo $current_term ? 'true' : 'false'; ?>">
-											<?php echo esc_html($term->name); ?>
+									<div class="docs-category <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $current_term ? 'current' : ''; ?> <?php echo $has_content ? 'has-children' : ''; ?>">
+											<div class="docs-category-toggle <?php echo !$has_content ? 'no-toggle' : ''; ?>" role="button" tabindex="0" aria-expanded="<?php echo $current_term ? 'true' : 'false'; ?>">
+												<a href="<?php echo esc_url(get_term_link($term)); ?>" class="docs-category-link"><?php echo esc_html($term->name); ?></a>
 										</div>
 										<?php
-										// Get posts in this term
-										$args = array(
-											'post_type' => 'docs',
-											'tax_query' => array(
-												array(
-													'taxonomy' => 'docs-categories',
-													'field' => 'term_id',
-													'terms' => $term->term_id,														'include_children' => false,												),
-											),
-											'posts_per_page' => -1,
-											'orderby' => 'menu_order title',
-											'order' => 'ASC',
-										);
-										$posts = get_posts($args);
-										if (!empty($posts) || $has_children) :
+										if ($has_content) :
 											?>
 											<ul class="docs-list <?php echo $current_term ? 'open' : ''; ?>">
-												<?php foreach ($posts as $post_item) : ?>
+												<?php foreach ($term_posts as $post_item) : ?>
 													<li class="docs-post <?php echo (get_the_ID() === $post_item->ID && $term->term_id === $deepest_term_id) ? 'current' : ''; ?>">
 														<a href="<?php echo get_permalink($post_item->ID); ?>">
 															<?php echo esc_html($post_item->post_title); ?>
