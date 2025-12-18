@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', function () {
 	let allDocs = null;
 	let allTerms = null;
 
+	// Re-enable hover effects when mouse moves over suggestions
+	if (modalSuggestions) {
+		modalSuggestions.addEventListener('mousemove', function () {
+			modalSuggestions.classList.remove('hover-disabled');
+		});
+	}
+
 	function showModal() {
 		modal.classList.add('show');
 		console.log('Modal classList:', modal.classList);
@@ -224,6 +231,10 @@ document.addEventListener('DOMContentLoaded', function () {
 			console.log('Docs not loaded yet');
 			return;
 		}
+
+		// Disable hover effects until mouse moves
+		modalSuggestions.classList.add('hover-disabled');
+
 		console.log('Filtering docs for query:', query);
 		// Filter data based on search query
 		const filteredData = allDocs
