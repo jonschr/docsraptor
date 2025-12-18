@@ -1,0 +1,38 @@
+/* Utility Classes for Docs Raptor */
+
+/* ==========================================================================
+   Responsive Visibility
+   ========================================================================== */
+
+@media (max-width: 768px) {
+	.mobile-only {
+		display: block !important;
+	}
+	.desktop-only {
+		display: none !important;
+	}
+}
+
+@media (min-width: 769px) {
+	.mobile-only {
+		display: none !important;
+	}
+	.desktop-only {
+		display: block !important;
+	}
+}
+
+/* ==========================================================================
+   Responsive Flex
+   ========================================================================== */
+
+.responsive-flex {
+	display: flex;
+	flex-direction: column;
+}
+
+@media (min-width: 769px) {
+	.responsive-flex {
+		flex-direction: row;
+	}
+}

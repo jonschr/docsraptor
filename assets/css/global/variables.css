@@ -16,3 +16,12 @@
 	--heading-2: 2rem;
 	--heading-3: 1.5rem;
 }
+
+/* Responsive heading sizes */
+@media (max-width: 768px) {
+	:root {
+		--heading-1: 2rem;
+		--heading-2: 1.5rem;
+		--heading-3: 1.25rem;
+	}
+}

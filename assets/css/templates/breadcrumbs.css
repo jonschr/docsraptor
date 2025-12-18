@@ -1,0 +1,54 @@
+/* ==========================================================================
+   Breadcrumbs
+   ========================================================================== */
+
+.docs-breadcrumbs {
+	margin-bottom: var(--docsraptor-spacing);
+	font-size: 14px;
+	color: #666;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5em;
+
+	a,
+	span {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	a {
+		color: #666;
+		text-decoration: underline;
+		transition: color 0.2s ease;
+
+		&:hover {
+			color: var(--docsraptor-primary-color);
+		}
+	}
+
+	span:last-child {
+		color: #666;
+	}
+}
+
+.docs-breadcrumbs-home {
+	display: inline-flex;
+	align-items: center;
+	color: #666;
+	text-decoration: none;
+
+	svg {
+		width: 14px;
+		height: 14px;
+	}
+
+	&:hover {
+		color: var(--docsraptor-primary-color);
+	}
+}
+
+.docs-breadcrumb-sep {
+	margin: 0 0.5em;
+	color: #999;
+}

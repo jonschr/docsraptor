@@ -1,0 +1,29 @@
+/* Docs Template Styles - Main Layout */
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.docs-container {
+	display: flex;
+	margin: 0 auto;
+	padding: 0;
+}
+
+/* Account for WordPress admin bar */
+body.admin-bar {
+	.docs-sidebar-content,
+	.docs-toc-content {
+		top: calc(var(--docsraptor-header-height-scrolled) + 32px);
+	}
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+	.docs-container {
+		flex-direction: column;
+	}
+}

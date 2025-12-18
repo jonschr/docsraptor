@@ -1,13 +1,14 @@
 /* Docs Raptor Main CSS */
 
-/* Import variables */
-@import url('variables.css');
+/* Global styles */
+@import url('global/variables.css');
+@import url('global/mixins.css');
+@import url('global/gb-defaults.css');
 
-/* Import mixins/utilities */
-@import url('mixins.css');
-
-/* Import theme defaults */
-@import url('gb-defaults.css');
-
-/* Import component styles */
-@import url('docs.css');
+/* Template styles */
+@import url('templates/container.css');
+@import url('templates/sidebar.css');
+@import url('templates/toc.css');
+@import url('templates/search.css');
+@import url('templates/breadcrumbs.css');
+@import url('templates/content.css');

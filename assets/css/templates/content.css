@@ -1,0 +1,175 @@
+/* ==========================================================================
+   Main Content Area
+   ========================================================================== */
+
+.docs-main {
+	width: 100%;
+	max-width: 960px;
+	flex: none;
+	padding: calc(var(--docsraptor-spacing) * 3)
+		calc(var(--docsraptor-spacing) * 2);
+	margin: 0 auto;
+	min-height: calc(100vh - var(--docsraptor-header-height));
+
+	h1 {
+		font-size: var(--heading-1);
+		margin-top: 0;
+		margin-bottom: 5px;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		scroll-margin-top: 2em;
+	}
+}
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.docs-meta {
+	margin-bottom: calc(var(--docsraptor-spacing) * 2);
+	font-size: 14px;
+	color: #666;
+}
+
+.docs-content {
+	line-height: var(--docsraptor-line-height);
+	font-size: var(--docsraptor-font-size-base);
+	color: var(--docsraptor-text-color);
+
+	h1,
+	h2,
+	h3 {
+		margin-top: calc(var(--docsraptor-spacing) * 2);
+		margin-bottom: var(--docsraptor-spacing);
+	}
+
+	h1 {
+		font-size: var(--heading-1);
+	}
+
+	h2 {
+		font-size: var(--heading-2);
+	}
+
+	h3 {
+		font-size: var(--heading-3);
+	}
+}
+
+/* ==========================================================================
+   Heading Anchor Links
+   ========================================================================== */
+
+.docs-heading-anchor {
+	position: relative;
+
+	&:hover .docs-heading-link {
+		opacity: 0.5;
+	}
+}
+
+.docs-heading-link {
+	margin-left: 0.4em;
+	color: inherit;
+	text-decoration: none;
+	opacity: 0;
+	transition: opacity 0.2s ease, color 0.2s ease;
+	font-weight: 400;
+	font-size: inherit;
+
+	&:focus {
+		opacity: 0.5;
+	}
+
+	&:hover {
+		opacity: 1;
+		color: var(--docsraptor-primary-color);
+	}
+
+	&.copied {
+		opacity: 1;
+		color: #22c55e;
+	}
+}
+
+/* ==========================================================================
+   Category/Taxonomy Page Styles
+   ========================================================================== */
+
+.docs-description {
+	margin-bottom: 2em;
+	color: #666;
+	font-size: 1.1em;
+	line-height: 1.6;
+}
+
+.docs-category-listing {
+	margin-top: 2em;
+}
+
+.docs-posts-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 2em 0;
+
+	li {
+		padding: 0.5em 0;
+		border-bottom: 1px solid var(--docsraptor-border-color);
+
+		&:last-child {
+			border-bottom: none;
+		}
+	}
+
+	a {
+		color: var(--docsraptor-text-color);
+		text-decoration: none;
+		font-size: 15px;
+		transition: color 0.2s ease;
+
+		&:hover {
+			color: var(--docsraptor-primary-color);
+		}
+	}
+}
+
+.docs-subcategory {
+	margin-bottom: 2.5em;
+	padding-bottom: 2em;
+	border-bottom: 1px solid var(--docsraptor-border-color);
+
+	&:last-child {
+		border-bottom: none;
+	}
+
+	h2 {
+		margin: 0 0 0.5em 0;
+		font-size: 1.3em;
+
+		a {
+			color: var(--docsraptor-text-color);
+			text-decoration: none;
+			transition: color 0.2s ease;
+
+			&:hover {
+				color: var(--docsraptor-primary-color);
+			}
+		}
+	}
+
+	.docs-posts-list {
+		margin-bottom: 0;
+	}
+}
+
+.docs-subcategory-description {
+	color: #666;
+	margin: 0 0 1em 0;
+	font-size: 14px;
+}

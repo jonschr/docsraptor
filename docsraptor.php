@@ -60,8 +60,13 @@ docsraptor_require_files_recursive( DOCSRAPTOR_DIR . 'lib' );
 add_action( 'wp_enqueue_scripts', 'docsraptor_enqueue_assets' );
 function docsraptor_enqueue_assets() {
 	if ( is_singular( 'docs' ) || is_tax( 'docs-categories' ) ) {
+		// Styles
 		wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), DOCSRAPTOR_VERSION );
-		wp_enqueue_script( 'docsraptor-js', DOCSRAPTOR_PATH . 'assets/js/docs.js', array(), DOCSRAPTOR_VERSION, true );
+
+		// Scripts
+		wp_enqueue_script( 'docsraptor-sidebar', DOCSRAPTOR_PATH . 'assets/js/sidebar.js', array(), DOCSRAPTOR_VERSION, true );
+		wp_enqueue_script( 'docsraptor-search', DOCSRAPTOR_PATH . 'assets/js/search.js', array(), DOCSRAPTOR_VERSION, true );
+		wp_enqueue_script( 'docsraptor-toc', DOCSRAPTOR_PATH . 'assets/js/toc.js', array(), DOCSRAPTOR_VERSION, true );
 	}
 }
 
