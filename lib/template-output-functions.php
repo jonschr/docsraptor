@@ -23,6 +23,11 @@ function docsraptor_get_terms_hierarchical( $taxonomy ) {
 		'order'      => 'ASC',
 	) );
 
+	// Return empty array if no terms or error.
+	if ( empty( $terms ) || is_wp_error( $terms ) ) {
+		return array();
+	}
+
 	$organized_terms = array();
 	$terms_by_id     = array();
 
@@ -43,20 +48,26 @@ function docsraptor_get_terms_hierarchical( $taxonomy ) {
 	}
 
 	// Sort organized_terms and children by term_order.
-	usort( $organized_terms, function( $a, $b ) {
-		return $a->term_order - $b->term_order;
-	} );
+	if ( ! empty( $organized_terms ) ) {
+		usort( $organized_terms, function( $a, $b ) {
+			$a_order = isset( $a->term_order ) ? $a->term_order : 0;
+			$b_order = isset( $b->term_order ) ? $b->term_order : 0;
+			return $a_order - $b_order;
+		} );
 
-	foreach ( $organized_terms as $term ) {
-		if ( isset( $term->children ) ) {
-			usort( $term->children, function( $a, $b ) {
-				return $a->term_order - $b->term_order;
-			} );
+		foreach ( $organized_terms as $term ) {
+			if ( isset( $term->children ) ) {
+				usort( $term->children, function( $a, $b ) {
+					$a_order = isset( $a->term_order ) ? $a->term_order : 0;
+					$b_order = isset( $b->term_order ) ? $b->term_order : 0;
+					return $a_order - $b_order;
+				} );
+			}
 		}
-	}
 
-	// Filter out empty terms (no posts and no children with posts).
-	$organized_terms = array_filter( $organized_terms, 'docsraptor_term_has_content' );
+		// Filter out empty terms (no posts and no children with posts).
+		$organized_terms = array_filter( $organized_terms, 'docsraptor_term_has_content' );
+	}
 
 	return $organized_terms;
 }
@@ -107,6 +118,11 @@ function docsraptor_term_has_content( $term ) {
  * @param int      $level           The current nesting level.
  */
 function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $deepest_term_id = null, $current_term_id = null, $level = 0 ) {
+	// Return early if no terms.
+	if ( empty( $terms ) ) {
+		return;
+	}
+
 	if ( 0 === $level ) {
 		echo '<ul class="docs-list open">';
 	}
@@ -304,13 +320,51 @@ function docsraptor_get_home_url() {
 		return get_permalink( $uncategorized_posts[0]->ID );
 	}
 
-	// Then check for first category with content.
-	$terms = docsraptor_get_terms_hierarchical( 'docs-categories' );
+	// Then check for first category with content (by term_order).
+	$terms = get_terms( array(
+		'taxonomy'   => 'docs-categories',
+		'hide_empty' => false,
+		'parent'     => 0,
+		'orderby'    => 'term_order',
+		'order'      => 'ASC',
+	) );
 	if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-		return get_term_link( $terms[0] );
+		foreach ( $terms as $term ) {
+			// Check if this term has any posts (including in children).
+			$posts_in_term = get_posts( array(
+				'post_type'      => 'docs',
+				'tax_query'      => array(
+					array(
+						'taxonomy'         => 'docs-categories',
+						'field'            => 'term_id',
+						'terms'            => $term->term_id,
+						'include_children' => true,
+					),
+				),
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			) );
+			if ( ! empty( $posts_in_term ) ) {
+				$term_link = get_term_link( $term );
+				if ( ! is_wp_error( $term_link ) ) {
+					return $term_link;
+				}
+			}
+		}
 	}
 
-	// Fallback to site home.
+	// Fallback: get the very first doc post.
+	$first_doc = get_posts( array(
+		'post_type'      => 'docs',
+		'posts_per_page' => 1,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+	) );
+	if ( ! empty( $first_doc ) ) {
+		return get_permalink( $first_doc[0]->ID );
+	}
+
+	// Final fallback if no docs exist at all.
 	return home_url( '/' );
 }
 
@@ -321,9 +375,8 @@ function docsraptor_output_home_icon() {
 	$home_url = docsraptor_get_home_url();
 	?>
 	<a href="<?php echo esc_url( $home_url ); ?>" class="docs-breadcrumbs-home" title="<?php esc_attr_e( 'Docs Home', 'docsraptor' ); ?>">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-			<path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
-			<path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" />
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 92 96" fill="currentColor" width="16" height="16">
+			<path d="M90.2886 42.8581L48.6219 1.1914C47.0022 -0.397133 44.4083 -0.397133 42.7886 1.1914L1.12194 42.8581C0.0281916 44.03 -0.299928 45.733 0.288605 47.2278C0.877138 48.7226 2.2678 49.7434 3.87194 49.8581H8.95527V91.5247C8.95527 92.6289 9.39276 93.6914 10.174 94.4726C10.9553 95.2539 12.0177 95.6914 13.1219 95.6914H36.4552V67.7327C36.4552 65.4305 38.3197 63.566 40.6219 63.566H50.7052C51.8094 63.566 52.8719 64.0035 53.6531 64.7848C54.4343 65.566 54.8718 66.6285 54.8718 67.7326V95.65H78.2051C79.3093 95.65 80.3718 95.2125 81.153 94.4312C81.9342 93.65 82.3717 92.5875 82.3717 91.4834V49.8167H87.6635C89.226 49.65 90.5593 48.6136 91.1165 47.1448C91.6686 45.676 91.3511 44.0142 90.2886 42.8581Z"/>
 		</svg>
 	</a><span class="docs-breadcrumb-sep">›</span>
 	<?php
@@ -357,10 +410,20 @@ function docsraptor_output_breadcrumbs( $post_id ) {
 
 			foreach ( $ancestors as $ancestor_id ) {
 				$ancestor = get_term( $ancestor_id, 'docs-categories' );
-				echo '<a href="' . esc_url( get_term_link( $ancestor ) ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
+				if ( $ancestor && ! is_wp_error( $ancestor ) ) {
+					$ancestor_link = get_term_link( $ancestor );
+					if ( ! is_wp_error( $ancestor_link ) ) {
+						echo '<a href="' . esc_url( $ancestor_link ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
+					}
+				}
 			}
 			?>
-			<a href="<?php echo esc_url( get_term_link( $deepest_term ) ); ?>"><?php echo esc_html( $deepest_term->name ); ?></a><span class="docs-breadcrumb-sep">›</span>
+			<?php
+			$deepest_link = get_term_link( $deepest_term );
+			if ( ! is_wp_error( $deepest_link ) ) :
+			?>
+			<a href="<?php echo esc_url( $deepest_link ); ?>"><?php echo esc_html( $deepest_term->name ); ?></a><span class="docs-breadcrumb-sep">›</span>
+			<?php endif; ?>
 		<?php endif; ?>
 		<span><?php echo get_the_title( $post_id ); ?></span>
 	</div>
@@ -382,7 +445,12 @@ function docsraptor_output_term_breadcrumbs( $term ) {
 			$ancestors = array_reverse( $ancestors );
 			foreach ( $ancestors as $ancestor_id ) {
 				$ancestor = get_term( $ancestor_id, 'docs-categories' );
-				echo '<a href="' . esc_url( get_term_link( $ancestor ) ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
+				if ( $ancestor && ! is_wp_error( $ancestor ) ) {
+					$ancestor_link = get_term_link( $ancestor );
+					if ( ! is_wp_error( $ancestor_link ) ) {
+						echo '<a href="' . esc_url( $ancestor_link ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
+					}
+				}
 			}
 		endif;
 		?>

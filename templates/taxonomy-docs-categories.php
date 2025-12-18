@@ -8,6 +8,13 @@
 get_header();
 
 $term = get_queried_object();
+
+// Safety check - ensure we have a valid term object.
+if ( ! $term || ! isset( $term->term_id ) ) {
+	echo '<p>' . esc_html__( 'Category not found.', 'docsraptor' ) . '</p>';
+	get_footer();
+	return;
+}
 ?>
 
 <div class="docs-container">
