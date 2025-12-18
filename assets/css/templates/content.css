@@ -5,10 +5,9 @@
 .docs-main {
 	width: 100%;
 	max-width: 960px;
-	flex: none;
+	justify-self: center;
 	padding: calc(var(--docsraptor-spacing) * 3)
 		calc(var(--docsraptor-spacing) * 2);
-	margin: 0 auto;
 	min-height: calc(100vh - var(--docsraptor-header-height));
 
 	h1 {

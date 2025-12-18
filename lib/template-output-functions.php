@@ -264,6 +264,19 @@ function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = 
 }
 
 /**
+ * Output the mobile/tablet search bar (shown above main content at medium widths).
+ */
+function docsraptor_output_mobile_search() {
+	?>
+	<div class="docs-mobile-search">
+		<form role="search" class="docs-search-form">
+			<input type="search" placeholder="Search docs..." class="docs-search-input" readonly />
+		</form>
+	</div>
+	<?php
+}
+
+/**
  * Output the right sidebar with TOC and search.
  */
 function docsraptor_output_toc_sidebar() {

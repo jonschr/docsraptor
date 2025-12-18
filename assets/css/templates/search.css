@@ -181,3 +181,25 @@
 		}
 	}
 }
+
+/* ==========================================================================
+   Mobile/Tablet Search
+   ========================================================================== */
+
+.docs-mobile-search {
+	display: none;
+	padding: calc(var(--docsraptor-spacing) * 2)
+		calc(var(--docsraptor-spacing) * 2) 0;
+}
+
+@media (max-width: 1200px) {
+	.docs-mobile-search {
+		display: block;
+	}
+}
+
+@media (max-width: 768px) {
+	.docs-mobile-search {
+		padding: var(--docsraptor-spacing);
+	}
+}

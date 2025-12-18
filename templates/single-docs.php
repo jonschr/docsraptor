@@ -20,6 +20,9 @@ if ( have_posts() ) :
 				</div>
 			</div>
 
+			<!-- Mobile/Tablet Search (hidden on desktop) -->
+			<?php docsraptor_output_mobile_search(); ?>
+
 			<!-- Main Content -->
 			<div class="docs-main">
 				<?php docsraptor_output_breadcrumbs( get_the_ID() ); ?>

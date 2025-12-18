@@ -57,9 +57,14 @@
    Responsive
    ========================================================================== */
 
+@media (max-width: 1200px) {
+	.docs-toc {
+		display: none;
+	}
+}
+
 @media (max-width: 768px) {
 	.docs-toc {
-		position: static;
-		width: 100%;
+		display: none;
 	}
 }

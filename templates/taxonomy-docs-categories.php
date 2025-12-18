@@ -25,6 +25,9 @@ if ( ! $term || ! isset( $term->term_id ) ) {
 		</div>
 	</div>
 
+	<!-- Mobile/Tablet Search (hidden on desktop) -->
+	<?php docsraptor_output_mobile_search(); ?>
+
 	<!-- Main Content -->
 	<div class="docs-main">
 		<?php docsraptor_output_term_breadcrumbs( $term ); ?>
