@@ -59,13 +59,13 @@ docsraptor_require_files_recursive( DOCSRAPTOR_DIR . 'lib' );
 // Enqueue styles and scripts.
 add_action( 'wp_enqueue_scripts', 'docsraptor_enqueue_assets' );
 function docsraptor_enqueue_assets() {
-	if ( is_singular( 'docs' ) ) {
+	if ( is_singular( 'docs' ) || is_tax( 'docs-categories' ) ) {
 		wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), DOCSRAPTOR_VERSION );
 		wp_enqueue_script( 'docsraptor-js', DOCSRAPTOR_PATH . 'assets/js/docs.js', array(), DOCSRAPTOR_VERSION, true );
 	}
 }
 
-// Include custom template for docs CPT if theme doesn't have one.
+// Include custom template for docs CPT and taxonomy if theme doesn't have one.
 add_filter( 'template_include', 'docsraptor_template_include' );
 function docsraptor_template_include( $template ) {
 	if ( is_singular( 'docs' ) && ! locate_template( 'single-docs.php' ) ) {
@@ -74,5 +74,13 @@ function docsraptor_template_include( $template ) {
 			return $plugin_template;
 		}
 	}
+
+	if ( is_tax( 'docs-categories' ) && ! locate_template( 'taxonomy-docs-categories.php' ) ) {
+		$plugin_template = DOCSRAPTOR_DIR . 'templates/taxonomy-docs-categories.php';
+		if ( file_exists( $plugin_template ) ) {
+			return $plugin_template;
+		}
+	}
+
 	return $template;
 }

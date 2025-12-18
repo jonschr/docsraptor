@@ -70,7 +70,7 @@ body.admin-bar .docs-toc-content {
 }
 
 .docs-category.child .docs-category-toggle {
-	font-size: 14px;
+	font-size: 15px;
 	padding: 10px 12px;
 }
 
@@ -83,7 +83,7 @@ body.admin-bar .docs-toc-content {
 	cursor: pointer;
 	transition: color 0.2s ease;
 	font-weight: 500;
-	font-size: 14px;
+	font-size: 16px;
 	color: var(--docsraptor-text-color);
 	position: relative;
 	border-radius: 0;
@@ -102,8 +102,8 @@ body.admin-bar .docs-toc-content {
 	top: 50%;
 	transform: translateY(-50%) rotate(0deg);
 	transition: transform 0.2s ease;
-	width: 12px;
-	height: 12px;
+	width: 18px;
+	height: 18px;
 	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3e%3cpath fill-rule='evenodd' d='M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z' clip-rule='evenodd'/%3e%3c/svg%3e");
 	background-size: contain;
 	background-repeat: no-repeat;
@@ -147,7 +147,7 @@ body.admin-bar .docs-toc-content {
 	color: var(--docsraptor-text-color);
 	text-decoration: none;
 	font-weight: 500;
-	font-size: 14px;
+	font-size: 16px;
 	transition: color 0.2s ease;
 }
 
@@ -205,7 +205,7 @@ body.admin-bar .docs-toc-content {
 	color: var(--docsraptor-text-color);
 	text-decoration: none;
 	transition: color 0.2s ease;
-	font-size: 13px;
+	font-size: 15px;
 }
 
 .docs-list a:hover {
@@ -215,6 +215,52 @@ body.admin-bar .docs-toc-content {
 .docs-breadcrumbs {
 	margin-bottom: var(--docsraptor-spacing);
 	font-size: 14px;
+	color: #666;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.5em;
+}
+
+.docs-breadcrumbs a,
+.docs-breadcrumbs span {
+	display: inline-flex;
+	align-items: center;
+}
+
+.docs-breadcrumbs a {
+	color: #666;
+	text-decoration: underline;
+	transition: color 0.2s ease;
+}
+
+.docs-breadcrumbs a:hover {
+	color: var(--docsraptor-primary-color);
+}
+
+.docs-breadcrumbs-home {
+	display: inline-flex;
+	align-items: center;
+	color: #666;
+	text-decoration: none;
+}
+
+.docs-breadcrumbs-home svg {
+	width: 18px;
+	height: 18px;
+}
+
+.docs-breadcrumbs-home:hover {
+	color: var(--docsraptor-primary-color);
+}
+
+/* Separators between breadcrumb items */
+.docs-breadcrumb-sep {
+	margin: 0 0.5em;
+	color: #999;
+}
+
+.docs-breadcrumbs span:last-child {
 	color: #666;
 }
 
@@ -241,6 +287,36 @@ body.admin-bar .docs-toc-content {
 .docs-content h3 {
 	margin-top: calc(var(--docsraptor-spacing) * 2);
 	margin-bottom: var(--docsraptor-spacing);
+}
+
+/* Heading anchor links */
+.docs-heading-anchor {
+	position: relative;
+}
+
+.docs-heading-link {
+	margin-left: 0.4em;
+	color: inherit;
+	text-decoration: none;
+	opacity: 0;
+	transition: opacity 0.2s ease, color 0.2s ease;
+	font-weight: 400;
+	font-size: inherit;
+}
+
+.docs-heading-anchor:hover .docs-heading-link,
+.docs-heading-link:focus {
+	opacity: 0.5;
+}
+
+.docs-heading-link:hover {
+	opacity: 1;
+	color: var(--docsraptor-primary-color);
+}
+
+.docs-heading-link.copied {
+	opacity: 1;
+	color: #22c55e;
 }
 
 .docs-content h1 {
@@ -467,4 +543,76 @@ body.admin-bar .docs-toc-content {
 .docs-main h5,
 .docs-main h6 {
 	scroll-margin-top: 2em;
+}
+/* Category/Taxonomy Page Styles */
+.docs-description {
+	margin-bottom: 2em;
+	color: #666;
+	font-size: 1.1em;
+	line-height: 1.6;
+}
+
+.docs-category-listing {
+	margin-top: 2em;
+}
+
+.docs-posts-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 2em 0;
+}
+
+.docs-posts-list li {
+	padding: 0.5em 0;
+	border-bottom: 1px solid var(--docsraptor-border-color);
+}
+
+.docs-posts-list li:last-child {
+	border-bottom: none;
+}
+
+.docs-posts-list a {
+	color: var(--docsraptor-text-color);
+	text-decoration: none;
+	font-size: 15px;
+	transition: color 0.2s ease;
+}
+
+.docs-posts-list a:hover {
+	color: var(--docsraptor-primary-color);
+}
+
+.docs-subcategory {
+	margin-bottom: 2.5em;
+	padding-bottom: 2em;
+	border-bottom: 1px solid var(--docsraptor-border-color);
+}
+
+.docs-subcategory:last-child {
+	border-bottom: none;
+}
+
+.docs-subcategory h2 {
+	margin: 0 0 0.5em 0;
+	font-size: 1.3em;
+}
+
+.docs-subcategory h2 a {
+	color: var(--docsraptor-text-color);
+	text-decoration: none;
+	transition: color 0.2s ease;
+}
+
+.docs-subcategory h2 a:hover {
+	color: var(--docsraptor-primary-color);
+}
+
+.docs-subcategory-description {
+	color: #666;
+	margin: 0 0 1em 0;
+	font-size: 14px;
+}
+
+.docs-subcategory .docs-posts-list {
+	margin-bottom: 0;
 }

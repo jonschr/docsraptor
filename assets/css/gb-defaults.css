@@ -1,8 +1,10 @@
 /* GeneratePress Defaults for Docs Raptor */
 
-/* Full width layout for single docs pages */
+/* Full width layout for single docs pages and taxonomy pages */
 body.single-docs .site.grid-container,
-body.single-docs .site.grid-container .site-content {
+body.single-docs .site.grid-container .site-content,
+body.tax-docs-categories .site.grid-container,
+body.tax-docs-categories .site.grid-container .site-content {
 	width: 100%;
 	max-width: 100%;
 	padding: 0;
