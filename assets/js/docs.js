@@ -349,20 +349,22 @@ document.addEventListener('DOMContentLoaded', function () {
 		anchor.addEventListener('click', function (e) {
 			e.preventDefault();
 			const url = window.location.href.split('#')[0] + '#' + id;
-			
+
 			// Copy to clipboard
-			copyToClipboard(url).then(() => {
-				// Show brief "Copied!" feedback
-				const originalText = anchor.innerHTML;
-				anchor.innerHTML = '✓';
-				anchor.classList.add('copied');
-				setTimeout(() => {
-					anchor.innerHTML = originalText;
-					anchor.classList.remove('copied');
-				}, 1500);
-			}).catch(() => {
-				// Silently fail if copy doesn't work
-			});
+			copyToClipboard(url)
+				.then(() => {
+					// Show brief "Copied!" feedback
+					const originalText = anchor.innerHTML;
+					anchor.innerHTML = '✓';
+					anchor.classList.add('copied');
+					setTimeout(() => {
+						anchor.innerHTML = originalText;
+						anchor.classList.remove('copied');
+					}, 1500);
+				})
+				.catch(() => {
+					// Silently fail if copy doesn't work
+				});
 
 			// Navigate to anchor
 			history.pushState(null, null, '#' + id);
@@ -374,7 +376,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Generate TOC and add anchor links
 	const content = document.querySelector('.docs-content');
-	const headings = content ? content.querySelectorAll('h1, h2, h3, h4, h5, h6') : [];
+	const headings = content
+		? content.querySelectorAll('h1, h2, h3, h4, h5, h6')
+		: [];
 	const tocContent = document.querySelector('.docs-toc-list');
 
 	// Add anchor links to all headings
