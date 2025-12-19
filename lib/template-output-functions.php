@@ -210,6 +210,12 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
  * @param int|null $current_term_id The current term ID (for taxonomy pages).
  */
 function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = null ) {
+	?>
+	<button type="button" class="docs-collapse-all" aria-label="Collapse all categories">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+		Collapse All
+	</button>
+	<?php
 	// Get uncategorized posts.
 	$uncategorized_args = array(
 		'post_type'      => 'docs',

@@ -3,6 +3,20 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
 	const toggles = document.querySelectorAll('.docs-category-toggle');
+
+	// Collapse All button functionality
+	const collapseButtons = document.querySelectorAll('.docs-collapse-all');
+	collapseButtons.forEach((btn) => {
+		btn.addEventListener('click', function () {
+			toggles.forEach((toggle) => {
+				toggle.setAttribute('aria-expanded', 'false');
+				const list = toggle.nextElementSibling;
+				if (list) {
+					list.classList.remove('open');
+				}
+			});
+		});
+	});
 	toggles.forEach((toggle) => {
 		const handleToggle = function (e) {
 			// Don't toggle if clicking the link

@@ -2,7 +2,8 @@
 :root {
 	--docsraptor-primary-color: #007cba;
 	--docsraptor-secondary-color: #f5f5f5;
-	--docsraptor-text-color: #333;
+	--docsraptor-text-color: #555;
+	--docsraptor-heading-color: #333;
 	--docsraptor-border-color: #ddd;
 	--docsraptor-active-bg: #f7f7f7;
 	--docsraptor-sidebar-width: 300px;
