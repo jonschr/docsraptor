@@ -2,23 +2,32 @@
  * Search modal functionality
  */
 document.addEventListener('DOMContentLoaded', function () {
-	// Set search input placeholder with OS-specific keys
+	// Set search input placeholder with OS-specific keys (hide shortcut on mobile)
 	const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 	const keyCombo = isMac ? '⌘K' : 'Ctrl+K';
-	const searchInput = document.querySelector('.docs-search-input');
-	if (searchInput) {
-		searchInput.placeholder = `Search... (${keyCombo})`;
+	const isMobile = window.innerWidth < 768;
+	const searchInputs = document.querySelectorAll('.docs-search-input');
+
+	function updatePlaceholders() {
+		const showShortcut = window.innerWidth >= 768;
+		searchInputs.forEach((input) => {
+			input.placeholder = showShortcut
+				? `Search... (${keyCombo})`
+				: 'Search...';
+		});
 	}
+
+	updatePlaceholders();
+	window.addEventListener('resize', updatePlaceholders);
 
 	// Search modal elements
 	const modal = document.getElementById('docs-search-modal');
 	const modalInput = document.getElementById('docs-modal-search');
-	const sidebarInput = document.querySelector('.docs-search-input');
 	const modalSuggestions = document.querySelector(
 		'.docs-search-suggestions-modal'
 	);
 
-	if (!modal || !modalInput || !sidebarInput) return;
+	if (!modal || !modalInput || !searchInputs.length) return;
 
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
@@ -82,10 +91,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	// Click on sidebar input to show modal
-	sidebarInput.addEventListener('click', function (e) {
-		e.preventDefault();
-		showModal();
+	// Click on search inputs to show modal
+	searchInputs.forEach((input) => {
+		input.addEventListener('click', function (e) {
+			e.preventDefault();
+			showModal();
+		});
 	});
 
 	// Search in modal

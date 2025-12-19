@@ -25,31 +25,21 @@ body.admin-bar {
    Responsive
    ========================================================================== */
 
-@media (max-width: 1200px) {
-	.docs-container {
-		grid-template-columns: var(--docsraptor-sidebar-width) minmax(0, 1fr);
-		grid-template-rows: auto 1fr;
-	}
-
-	.docs-sidebar {
-		grid-row: 1 / -1;
-	}
-
-	.docs-mobile-search {
-		grid-column: 2;
-		grid-row: 1;
-	}
-
+@media (max-width: 1600px) {
 	.docs-container .docs-main {
-		grid-column: 2;
-		grid-row: 2;
 		padding: var(--docsraptor-spacing) calc(var(--docsraptor-spacing) * 2);
 	}
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
 	.docs-container {
 		display: flex;
 		flex-direction: column;
+	}
+}
+
+@media (max-width: 600px) {
+	.docs-container .docs-main {
+		padding: 0 var(--docsraptor-spacing) var(--docsraptor-spacing);
 	}
 }

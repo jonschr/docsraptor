@@ -18,14 +18,25 @@ if ( ! $term || ! isset( $term->term_id ) ) {
 ?>
 
 <div class="docs-container">
-	<!-- Left Sidebar -->
-	<div class="docs-sidebar">
+	<!-- Left Sidebar (desktop) -->
+	<div class="docs-sidebar docs-sidebar-desktop">
 		<div class="docs-sidebar-content">
 			<?php docsraptor_output_sidebar( null, $term->term_id ); ?>
 		</div>
 	</div>
 
-	<!-- Mobile/Tablet Search (hidden on desktop) -->
+	<!-- Mobile Sidebar (collapsible) -->
+	<details class="docs-sidebar-mobile">
+		<summary>
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+			Menu
+		</summary>
+		<div class="docs-sidebar-content">
+			<?php docsraptor_output_sidebar( null, $term->term_id ); ?>
+		</div>
+	</details>
+
+	<!-- Mobile Search -->
 	<?php docsraptor_output_mobile_search(); ?>
 
 	<!-- Main Content -->
