@@ -22,6 +22,10 @@
 		"type": {
 			"type": "string",
 			"default": "info"
+		},
+		"customLabel": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"supports": {

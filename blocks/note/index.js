@@ -1,7 +1,8 @@
 (function (blocks, element, blockEditor, components) {
 	const { registerBlockType, createBlock } = blocks;
 	const { createElement: el, Fragment } = element;
-	const { useBlockProps, InnerBlocks, InspectorControls } = blockEditor;
+	const { useBlockProps, InnerBlocks, InspectorControls, RichText } =
+		blockEditor;
 	const { ToolbarGroup, ToolbarButton, PanelBody, SelectControl } =
 		components;
 
@@ -180,6 +181,25 @@
 		}
 	};
 
+	const getDefaultLabel = (type) => {
+		switch (type) {
+			case 'info':
+				return 'Info';
+			case 'tip':
+				return 'Tip';
+			case 'note':
+				return 'Note';
+			case 'warning':
+				return 'Warning';
+			case 'caution':
+				return 'Caution';
+			case 'danger':
+				return 'Danger';
+			default:
+				return 'Info';
+		}
+	};
+
 	registerBlockType('docsraptor/note', {
 		transforms: {
 			from: [
@@ -262,11 +282,14 @@
 
 		edit: function (props) {
 			const { attributes, setAttributes } = props;
-			const { type } = attributes;
+			const { type, customLabel } = attributes;
 
 			const blockProps = useBlockProps({
 				className: 'docsraptor-note docsraptor-note--' + type,
 			});
+
+			// Set default label if not set
+			const displayLabel = customLabel || getDefaultLabel(type);
 
 			return el(
 				Fragment,
@@ -294,6 +317,11 @@
 										onClick: function () {
 											setAttributes({
 												type: noteType.value,
+												customLabel:
+													customLabel ||
+													getDefaultLabel(
+														noteType.value
+													),
 											});
 										},
 										style: {
@@ -341,6 +369,21 @@
 					blockProps,
 					el(
 						'div',
+						{ className: 'docsraptor-note__header' },
+						el('div', { className: 'docsraptor-note__icon' }),
+						el(RichText, {
+							tagName: 'span',
+							className: 'docsraptor-note__label',
+							value: displayLabel,
+							onChange: function (value) {
+								setAttributes({ customLabel: value });
+							},
+							placeholder: getDefaultLabel(type),
+							allowedFormats: [], // No formatting allowed
+						})
+					),
+					el(
+						'div',
 						{ className: 'docsraptor-note__content' },
 						el(InnerBlocks, {
 							template: [
@@ -361,15 +404,28 @@
 
 		save: function (props) {
 			const { attributes } = props;
-			const { type } = attributes;
+			const { type, customLabel } = attributes;
 
 			const blockProps = useBlockProps.save({
 				className: 'docsraptor-note docsraptor-note--' + type,
 			});
 
+			// Use custom label or default
+			const displayLabel = customLabel || getDefaultLabel(type);
+
 			return el(
 				'div',
 				blockProps,
+				el(
+					'div',
+					{ className: 'docsraptor-note__header' },
+					el('div', { className: 'docsraptor-note__icon' }),
+					el(
+						'span',
+						{ className: 'docsraptor-note__label' },
+						displayLabel
+					)
+				),
 				el(
 					'div',
 					{ className: 'docsraptor-note__content' },
