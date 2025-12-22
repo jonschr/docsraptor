@@ -5,7 +5,9 @@
 	"version": "1.0.0",
 	"title": "Note",
 	"category": "docsraptor",
-	"icon": "info-outline",
+	"icon": {
+		"src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHZpZXdCb3g9IjAgMCAyNCAyNCIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZT0iIzAwNDA4NSIgY2xhc3M9InNpemUtNiI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJtMTEuMjUgMTEuMjUuMDQxLS4wMmEuNzUuNzUgMCAwIDEgMS4wNjMuODUybC0uNzA4IDIuODM2YS43NS43NSAwIDAgMCAxLjA2My44NTNsLjA0MS0uMDIxTTIxIDEyYTkgOSAwIDEgMS0xOCA5IDkgMCAwIDEgMTggMFptLTktMy43NWguMDA4di4wMDhIMTJWOC4yNVoiIC8+PC9zdmc+"
+	},
 	"description": "Add a note, warning, caution, or other callout to highlight important information.",
 	"keywords": [
 		"note",

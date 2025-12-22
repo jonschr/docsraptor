@@ -8,171 +8,124 @@
 	outline: none;
 }
 
+/* Define color variables at editor wrapper level for better inheritance */
+.editor-styles-wrapper {
+	--docsraptor-note-info-bg: #e7f3ff;
+	--docsraptor-note-info-text: #004085;
+	--docsraptor-note-tip-bg: #e6f4ea;
+	--docsraptor-note-tip-text: #155724;
+	--docsraptor-note-note-bg: #f5f5f5;
+	--docsraptor-note-note-text: #383d41;
+	--docsraptor-note-warning-bg: #fff3cd;
+	--docsraptor-note-warning-text: #856404;
+	--docsraptor-note-caution-bg: #fff4e5;
+	--docsraptor-note-caution-text: #8a4500;
+	--docsraptor-note-danger-bg: #f8d7da;
+	--docsraptor-note-danger-text: #721c24;
+}
+
 /* Ensure the note styles display properly in editor */
 .editor-styles-wrapper .docsraptor-note {
 	--docsraptor-note-border-radius: 3px;
-	
+
 	box-sizing: border-box;
 	position: relative;
 	border-radius: var(--docsraptor-note-border-radius);
 	margin: 1.5em 0;
-	padding: 1rem 1rem 1rem 2.75rem;
+	padding: 1rem;
 	border: 1px solid transparent;
-}
 
-.editor-styles-wrapper .docsraptor-note *,
-.editor-styles-wrapper .docsraptor-note *::before,
-.editor-styles-wrapper .docsraptor-note *::after {
-	box-sizing: border-box;
-}
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
 
-.editor-styles-wrapper .docsraptor-note__header {
-	position: absolute;
-	left: 0.75rem;
-	top: 1rem;
-	width: 24px;
-	height: 24px;
+	&__content {
+		padding: 0;
+	}
 }
-
-.editor-styles-wrapper .docsraptor-note__icon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	font-family: dashicons;
-	font-size: 20px;
-	font-style: normal;
-	font-weight: 400;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-.editor-styles-wrapper .docsraptor-note__label {
-	display: none;
-}
-
-.editor-styles-wrapper .docsraptor-note__content {
-	padding: 0;
-}
-
-/*
- * Icons via CSS using dashicons font
- * Keep in sync with index.js toolbar icons!
- * Reference: https://developer.wordpress.org/resource/dashicons/
- */
-.editor-styles-wrapper .docsraptor-note--info .docsraptor-note__icon::before { content: '\f348'; }    /* info */
-.editor-styles-wrapper .docsraptor-note--tip .docsraptor-note__icon::before { content: '\f339'; }     /* lightbulb */
-.editor-styles-wrapper .docsraptor-note--note .docsraptor-note__icon::before { content: '\f123'; }    /* format-aside */
-.editor-styles-wrapper .docsraptor-note--warning .docsraptor-note__icon::before { content: '\f534'; } /* warning */
-.editor-styles-wrapper .docsraptor-note--caution .docsraptor-note__icon::before { content: '\f332'; } /* shield */
-.editor-styles-wrapper .docsraptor-note--danger .docsraptor-note__icon::before { content: '\f153'; }  /* dismiss */
 
 /* Info variant */
 .editor-styles-wrapper .docsraptor-note--info {
-	background-color: var(--docsraptor-note-info-bg, #e7f3ff);
+	background-color: var(--docsraptor-note-info-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-info-text, #004085) 10%,
+		var(--docsraptor-note-info-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--info .docsraptor-note__icon {
-	color: var(--docsraptor-note-info-text, #004085);
-}
-
 .editor-styles-wrapper .docsraptor-note--info .docsraptor-note__content {
-	color: var(--docsraptor-note-info-text, #004085);
+	color: var(--docsraptor-note-info-text);
 }
 
 /* Tip variant */
 .editor-styles-wrapper .docsraptor-note--tip {
-	background-color: var(--docsraptor-note-tip-bg, #e6f4ea);
+	background-color: var(--docsraptor-note-tip-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-tip-text, #155724) 10%,
+		var(--docsraptor-note-tip-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--tip .docsraptor-note__icon {
-	color: var(--docsraptor-note-tip-text, #155724);
-}
-
 .editor-styles-wrapper .docsraptor-note--tip .docsraptor-note__content {
-	color: var(--docsraptor-note-tip-text, #155724);
+	color: var(--docsraptor-note-tip-text);
 }
 
 /* Note variant */
 .editor-styles-wrapper .docsraptor-note--note {
-	background-color: var(--docsraptor-note-note-bg, #f5f5f5);
+	background-color: var(--docsraptor-note-note-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-note-text, #383d41) 10%,
+		var(--docsraptor-note-note-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--note .docsraptor-note__icon {
-	color: var(--docsraptor-note-note-text, #383d41);
-}
-
 .editor-styles-wrapper .docsraptor-note--note .docsraptor-note__content {
-	color: var(--docsraptor-note-note-text, #383d41);
+	color: var(--docsraptor-note-note-text);
 }
 
 /* Warning variant */
 .editor-styles-wrapper .docsraptor-note--warning {
-	background-color: var(--docsraptor-note-warning-bg, #fff3cd);
+	background-color: var(--docsraptor-note-warning-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-warning-text, #856404) 10%,
+		var(--docsraptor-note-warning-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--warning .docsraptor-note__icon {
-	color: var(--docsraptor-note-warning-text, #856404);
-}
-
 .editor-styles-wrapper .docsraptor-note--warning .docsraptor-note__content {
-	color: var(--docsraptor-note-warning-text, #856404);
+	color: var(--docsraptor-note-warning-text);
 }
 
 /* Caution variant */
 .editor-styles-wrapper .docsraptor-note--caution {
-	background-color: var(--docsraptor-note-caution-bg, #fff4e5);
+	background-color: var(--docsraptor-note-caution-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-caution-text, #8a4500) 10%,
+		var(--docsraptor-note-caution-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--caution .docsraptor-note__icon {
-	color: var(--docsraptor-note-caution-text, #8a4500);
-}
-
 .editor-styles-wrapper .docsraptor-note--caution .docsraptor-note__content {
-	color: var(--docsraptor-note-caution-text, #8a4500);
+	color: var(--docsraptor-note-caution-text);
 }
 
 /* Danger variant */
 .editor-styles-wrapper .docsraptor-note--danger {
-	background-color: var(--docsraptor-note-danger-bg, #f8d7da);
+	background-color: var(--docsraptor-note-danger-bg);
 	border-color: color-mix(
 		in srgb,
-		var(--docsraptor-note-danger-text, #721c24) 10%,
+		var(--docsraptor-note-danger-text) 10%,
 		transparent
 	);
 }
 
-.editor-styles-wrapper .docsraptor-note--danger .docsraptor-note__icon {
-	color: var(--docsraptor-note-danger-text, #721c24);
-}
-
 .editor-styles-wrapper .docsraptor-note--danger .docsraptor-note__content {
-	color: var(--docsraptor-note-danger-text, #721c24);
+	color: var(--docsraptor-note-danger-text);
 }
