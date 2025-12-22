@@ -1,0 +1,185 @@
+/* Note Block - Frontend & Editor Styles */
+
+/* Base note styles */
+.docsraptor-note {
+	--docsraptor-note-border-radius: 3px;
+	
+	box-sizing: border-box;
+	position: relative;
+	border-radius: var(--docsraptor-note-border-radius);
+	margin: 1.5em 0;
+	padding: 1rem 1rem 1rem 2.75rem;
+	border: 1px solid transparent;
+}
+
+.docsraptor-note *,
+.docsraptor-note *::before,
+.docsraptor-note *::after {
+	box-sizing: border-box;
+}
+
+.docsraptor-note__header {
+	position: absolute;
+	left: 0.75rem;
+	top: 1rem;
+	width: 24px;
+	height: 24px;
+}
+
+.docsraptor-note__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	font-family: dashicons;
+	font-size: 20px;
+	font-style: normal;
+	font-weight: 400;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.docsraptor-note__label {
+	display: none;
+}
+
+/*
+ * Icons via CSS using dashicons font
+ * Keep in sync with index.js toolbar icons!
+ * Reference: https://developer.wordpress.org/resource/dashicons/
+ * 
+ * info          = \f348
+ * lightbulb     = \f339
+ * format-aside  = \f123
+ * warning       = \f534
+ * shield        = \f332
+ * dismiss       = \f153
+ */
+.docsraptor-note--info .docsraptor-note__icon::before { content: '\f348'; }    /* info */
+.docsraptor-note--tip .docsraptor-note__icon::before { content: '\f339'; }     /* lightbulb */
+.docsraptor-note--note .docsraptor-note__icon::before { content: '\f123'; }    /* format-aside */
+.docsraptor-note--warning .docsraptor-note__icon::before { content: '\f534'; } /* warning */
+.docsraptor-note--caution .docsraptor-note__icon::before { content: '\f332'; } /* shield */
+.docsraptor-note--danger .docsraptor-note__icon::before { content: '\f153'; }  /* dismiss */
+
+.docsraptor-note__content {
+	padding: 0;
+}
+
+.docsraptor-note__content > *:first-child {
+	margin-top: 0;
+}
+
+.docsraptor-note__content > *:last-child {
+	margin-bottom: 0;
+}
+
+/* Info variant */
+.docsraptor-note--info {
+	background-color: var(--docsraptor-note-info-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-info-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--info .docsraptor-note__icon {
+	color: var(--docsraptor-note-info-text);
+}
+
+.docsraptor-note--info .docsraptor-note__content {
+	color: var(--docsraptor-note-info-text);
+}
+
+/* Tip variant */
+.docsraptor-note--tip {
+	background-color: var(--docsraptor-note-tip-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-tip-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--tip .docsraptor-note__icon {
+	color: var(--docsraptor-note-tip-text);
+}
+
+.docsraptor-note--tip .docsraptor-note__content {
+	color: var(--docsraptor-note-tip-text);
+}
+
+/* Note variant */
+.docsraptor-note--note {
+	background-color: var(--docsraptor-note-note-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-note-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--note .docsraptor-note__icon {
+	color: var(--docsraptor-note-note-text);
+}
+
+.docsraptor-note--note .docsraptor-note__content {
+	color: var(--docsraptor-note-note-text);
+}
+
+/* Warning variant */
+.docsraptor-note--warning {
+	background-color: var(--docsraptor-note-warning-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-warning-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--warning .docsraptor-note__icon {
+	color: var(--docsraptor-note-warning-text);
+}
+
+.docsraptor-note--warning .docsraptor-note__content {
+	color: var(--docsraptor-note-warning-text);
+}
+
+/* Caution variant */
+.docsraptor-note--caution {
+	background-color: var(--docsraptor-note-caution-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-caution-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--caution .docsraptor-note__icon {
+	color: var(--docsraptor-note-caution-text);
+}
+
+.docsraptor-note--caution .docsraptor-note__content {
+	color: var(--docsraptor-note-caution-text);
+}
+
+/* Danger variant */
+.docsraptor-note--danger {
+	background-color: var(--docsraptor-note-danger-bg);
+	border-color: color-mix(
+		in srgb,
+		var(--docsraptor-note-danger-text) 10%,
+		transparent
+	);
+}
+
+.docsraptor-note--danger .docsraptor-note__icon {
+	color: var(--docsraptor-note-danger-text);
+}
+
+.docsraptor-note--danger .docsraptor-note__content {
+	color: var(--docsraptor-note-danger-text);
+}

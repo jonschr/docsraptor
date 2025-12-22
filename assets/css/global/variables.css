@@ -16,6 +16,43 @@
 	--heading-1: 2.5rem;
 	--heading-2: 2rem;
 	--heading-3: 1.5rem;
+
+	/* Note block colors */
+	/* Info - Blue */
+	--docsraptor-note-info-bg: #e7f3ff;
+	--docsraptor-note-info-border: #007cba;
+	--docsraptor-note-info-text: #004085;
+	--docsraptor-note-info-icon: #6693b6;
+
+	/* Tip - Green */
+	--docsraptor-note-tip-bg: #e6f4ea;
+	--docsraptor-note-tip-border: #28a745;
+	--docsraptor-note-tip-text: #155724;
+	--docsraptor-note-tip-icon: #74a37e;
+
+	/* Note - Gray */
+	--docsraptor-note-note-bg: #f5f5f5;
+	--docsraptor-note-note-border: #6c757d;
+	--docsraptor-note-note-text: #383d41;
+	--docsraptor-note-note-icon: #888c8f;
+
+	/* Warning - Yellow/Orange */
+	--docsraptor-note-warning-bg: #fff3cd;
+	--docsraptor-note-warning-border: #ffc107;
+	--docsraptor-note-warning-text: #856404;
+	--docsraptor-note-warning-icon: #b6a368;
+
+	/* Caution - Orange */
+	--docsraptor-note-caution-bg: #fff4e5;
+	--docsraptor-note-caution-border: #fd7e14;
+	--docsraptor-note-caution-text: #8a4500;
+	--docsraptor-note-caution-icon: #b98f66;
+
+	/* Danger - Red */
+	--docsraptor-note-danger-bg: #f8d7da;
+	--docsraptor-note-danger-border: #dc3545;
+	--docsraptor-note-danger-text: #721c24;
+	--docsraptor-note-danger-icon: #a9747a;
 }
 
 /* Responsive heading sizes */

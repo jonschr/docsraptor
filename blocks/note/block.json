@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "docsraptor/note",
+	"version": "1.0.0",
+	"title": "Note",
+	"category": "docsraptor",
+	"icon": "info-outline",
+	"description": "Add a note, warning, caution, or other callout to highlight important information.",
+	"keywords": [
+		"note",
+		"warning",
+		"caution",
+		"info",
+		"alert",
+		"notice",
+		"tip"
+	],
+	"attributes": {
+		"type": {
+			"type": "string",
+			"default": "info"
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true
+	},
+	"textdomain": "docsraptor",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css"
+}
