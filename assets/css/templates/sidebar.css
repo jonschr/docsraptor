@@ -3,7 +3,7 @@
    ========================================================================== */
 
 .docs-sidebar {
-	width: 300px;
+	width: var(--docsraptor-sidebar-width);
 	flex-shrink: 0;
 	background: var(--docsraptor-secondary-color);
 }
