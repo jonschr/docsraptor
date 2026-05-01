@@ -1,0 +1,8 @@
+.docsraptor-docs-search .components-placeholder__fieldset {
+	display: block;
+	width: 100%;
+}
+
+.docsraptor-docs-search .docs-search-input {
+	max-width: 420px;
+}

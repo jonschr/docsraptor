@@ -1,0 +1,67 @@
+.wp-block-docsraptor-docs-search,
+.docsraptor-docs-search {
+	width: 100%;
+}
+
+.docsraptor-docs-search--button {
+	width: auto;
+}
+
+.docsraptor-docs-search__label {
+	display: block;
+	margin-bottom: 8px;
+	color: var(--docsraptor-heading-color, #333);
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.docsraptor-docs-search__button.docs-search-input {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	min-height: 44px;
+}
+
+.docs-search-modal.show {
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	z-index: 99999;
+}
+
+.docs-search-modal-content {
+	width: 600px;
+	max-width: 90vw;
+	height: 60vh;
+	max-height: 500px;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+}
+
+.docs-search-suggestions-modal ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.docs-search-suggestions-modal li {
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.docs-search-suggestions-modal li:last-child {
+	border-bottom: none;
+}
+
+.docs-search-suggestions-modal a {
+	display: block;
+	padding: 12px 20px;
+	color: var(--docsraptor-text-color);
+	text-decoration: none;
+	font-size: 16px;
+	line-height: 1.4;
+}

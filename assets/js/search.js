@@ -29,10 +29,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	if (!modal || !modalInput || !searchInputs.length) return;
 
+	if (modal.parentElement !== document.body) {
+		document.body.appendChild(modal);
+	}
+
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
+	const docsCache = {};
 	let allTerms = null;
 	let activeQuery = '';
+	let activeFilter = null;
 	const currentCollectionId =
 		window.docsraptorSearch && window.docsraptorSearch.collectionId
 			? parseInt(window.docsraptorSearch.collectionId, 10)
@@ -45,14 +51,67 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	function showModal() {
+	function getTriggerFilter(trigger) {
+		const filterSource =
+			trigger && trigger.closest
+				? trigger.closest(
+						'.docs-search-input[data-docsraptor-filter-type], .docs-search-form[data-docsraptor-filter-type], .docsraptor-docs-search[data-docsraptor-filter-type], .wp-block-docsraptor-docs-search[data-docsraptor-filter-type]'
+					)
+				: trigger;
+		const dataset =
+			filterSource && filterSource.dataset ? filterSource.dataset : {};
+		const filterType = dataset.docsraptorFilterType || 'context';
+		const categoryId = parseInt(dataset.docsraptorCategoryId || '0', 10);
+		const collectionId = parseInt(
+			dataset.docsraptorCollectionId || '0',
+			10
+		);
+
+		if (filterType === 'category' && categoryId) {
+			return {
+				type: 'category',
+				id: categoryId,
+			};
+		}
+
+		if (filterType === 'collection' && collectionId) {
+			return {
+				type: 'collection',
+				id: collectionId,
+			};
+		}
+
+		if (filterType === 'all') {
+			return {
+				type: 'all',
+				id: 0,
+			};
+		}
+
+		if (filterType === 'category' || filterType === 'collection') {
+			return {
+				type: 'all',
+				id: 0,
+			};
+		}
+
+		return currentCollectionId
+			? {
+					type: 'collection',
+					id: currentCollectionId,
+				}
+			: {
+					type: 'unassigned',
+					id: 0,
+				};
+	}
+
+	function showModal(trigger) {
+		activeFilter = trigger ? getTriggerFilter(trigger) : getTriggerFilter({});
 		modal.classList.add('show');
 		modalInput.focus();
 		currentSuggestionIndex = -1;
-		// Fetch all docs if not already loaded
-		if (!allDocs) {
-			fetchAllDocs();
-		}
+		fetchDocsForFilter(activeFilter);
 	}
 
 	function hideModal() {
@@ -60,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		modalSuggestions.innerHTML = '';
 		modalInput.value = '';
 		activeQuery = '';
+		activeFilter = null;
 		currentSuggestionIndex = -1;
 	}
 
@@ -94,19 +154,50 @@ document.addEventListener('DOMContentLoaded', function () {
 			});
 	}
 
-	function fetchAllDocs() {
-		const docsUrl = '/wp-json/wp/v2/docs?per_page=100&_embed';
+	function getFilterCacheKey(filter) {
+		return filter.type + ':' + filter.id;
+	}
+
+	function getDocsUrlForFilter(filter) {
+		let docsUrl = '/wp-json/wp/v2/docs?per_page=100&_embed';
+
+		if (filter.type === 'category' && filter.id) {
+			docsUrl += '&docs-categories=' + encodeURIComponent(filter.id);
+		}
+
+		if (filter.type === 'collection' && filter.id) {
+			docsUrl += '&docs-collections=' + encodeURIComponent(filter.id);
+		}
+
+		return docsUrl;
+	}
+
+	function fetchDocsForFilter(filter) {
+		const cacheKey = getFilterCacheKey(filter);
+		const docsUrl = getDocsUrlForFilter(filter);
 		const termsUrl = '/wp-json/wp/v2/docs-categories?per_page=100';
+
+		if (docsCache[cacheKey] && allTerms) {
+			allDocs = docsCache[cacheKey];
+			if (activeQuery.length >= 2) {
+				filterSuggestions(activeQuery);
+			}
+			return;
+		}
+
 		Promise.all([
 			fetchRestPages(docsUrl),
-			fetchRestPages(termsUrl),
+			allTerms ? Promise.resolve(null) : fetchRestPages(termsUrl),
 		])
 			.then(([docs, terms]) => {
 				allDocs = docs;
-				allTerms = terms.reduce((map, term) => {
-					map[term.id] = term;
-					return map;
-				}, {});
+				docsCache[cacheKey] = docs;
+				if (terms) {
+					allTerms = terms.reduce((map, term) => {
+						map[term.id] = term;
+						return map;
+					}, {});
+				}
 				if (activeQuery.length >= 2) {
 					filterSuggestions(activeQuery);
 				}
@@ -135,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	searchInputs.forEach((input) => {
 		input.addEventListener('click', function (e) {
 			e.preventDefault();
-			showModal();
+			showModal(input);
 		});
 	});
 
@@ -290,10 +381,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	function getPostCollectionIds(post) {
 		if (Array.isArray(post['docs-collections'])) {
-			return post['docs-collections'];
+			return post['docs-collections'].map((id) => parseInt(id, 10));
 		}
 
-		return getPostTerms(post, 'docs-collections').map((term) => term.id);
+		return getPostTerms(post, 'docs-collections').map((term) =>
+			parseInt(term.id, 10)
+		);
+	}
+
+	function getPostCategoryIds(post) {
+		if (Array.isArray(post['docs-categories'])) {
+			return post['docs-categories'].map((id) => parseInt(id, 10));
+		}
+
+		return getPostTerms(post, 'docs-categories').map((term) =>
+			parseInt(term.id, 10)
+		);
 	}
 
 	function getSearchableTermNames(post) {
@@ -313,11 +416,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		// Filter data based on search query
 		const normalizedQuery = query.toLowerCase();
+		const filter = activeFilter || getTriggerFilter({});
 		const filteredData = allDocs
 			.filter((post) => {
+				if (filter.type === 'all') {
+					return true;
+				}
+
+				if (filter.type === 'category') {
+					return getPostCategoryIds(post).includes(filter.id);
+				}
+
 				const postCollections = getPostCollectionIds(post);
-				if (currentCollectionId) {
-					return postCollections.includes(currentCollectionId);
+				if (filter.type === 'collection') {
+					return postCollections.includes(filter.id);
 				}
 
 				return postCollections.length === 0;

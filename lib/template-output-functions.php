@@ -686,9 +686,35 @@ function docsraptor_output_toc_sidebar() {
 }
 
 /**
+ * Mark the shared search modal as required for footer output.
+ */
+function docsraptor_require_search_modal() {
+	$GLOBALS['docsraptor_search_modal_required'] = true;
+}
+
+/**
+ * Output the shared search modal in the footer when requested by blocks.
+ */
+add_action( 'wp_footer', 'docsraptor_output_required_search_modal' );
+function docsraptor_output_required_search_modal() {
+	if ( empty( $GLOBALS['docsraptor_search_modal_required'] ) ) {
+		return;
+	}
+
+	docsraptor_output_search_modal();
+}
+
+/**
  * Output the search modal.
  */
 function docsraptor_output_search_modal() {
+	static $has_output = false;
+
+	if ( $has_output ) {
+		return;
+	}
+
+	$has_output = true;
 	?>
 	<div id="docs-search-modal" class="docs-search-modal">
 		<div class="docs-search-modal-content">

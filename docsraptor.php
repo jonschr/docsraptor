@@ -9,7 +9,7 @@
  * Plugin Name:    Docs Raptor
  * Plugin URI:     https://elod.in
  * Description:    Create documentation and knowledge bases for anything.
- * Version:        0.3.0
+ * Version:        0.3.4
  * Author:         Jon Schroeder
  * Author URI:     https://elod.in
  * Text Domain:    docsraptor
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define the version of the plugin.
-define( 'DOCSRAPTOR_VERSION', '0.3.0' );
+define( 'DOCSRAPTOR_VERSION', '0.3.4' );
 
 // Set up plugin directories.
 define( 'DOCSRAPTOR_DIR', plugin_dir_path( __FILE__ ) );
@@ -99,13 +99,43 @@ function docsraptor_register_block_templates() {
 // Enqueue styles and scripts.
 add_action( 'wp_enqueue_scripts', 'docsraptor_enqueue_assets' );
 function docsraptor_enqueue_assets() {
+	if ( is_singular( 'docs' ) || is_tax( array( 'docs-categories', 'docs-collections' ) ) || docsraptor_current_query_has_search_block() ) {
+		docsraptor_enqueue_frontend_assets();
+	}
+}
+
+/**
+ * Enqueue frontend assets used by docs layouts and search.
+ */
+function docsraptor_enqueue_frontend_assets() {
+	static $has_enqueued = false;
+
+	if ( $has_enqueued ) {
+		return;
+	}
+
+	$has_enqueued = true;
+
 	if ( is_singular( 'docs' ) || is_tax( array( 'docs-categories', 'docs-collections' ) ) ) {
 		$current_doc_id = is_singular( 'docs' ) ? get_queried_object_id() : null;
+	} else {
+		$current_doc_id = null;
+	}
 
-		// Styles
-		wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), DOCSRAPTOR_VERSION );
+	// Styles
+	wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), DOCSRAPTOR_VERSION );
 
-		// Scripts
+	// Scripts
+	wp_enqueue_script( 'docsraptor-search', DOCSRAPTOR_PATH . 'assets/js/search.js', array(), DOCSRAPTOR_VERSION, true );
+	wp_localize_script(
+		'docsraptor-search',
+		'docsraptorSearch',
+		array(
+			'collectionId' => docsraptor_get_current_collection_id( $current_doc_id ),
+		)
+	);
+
+	if ( is_singular( 'docs' ) || is_tax( array( 'docs-categories', 'docs-collections' ) ) ) {
 		wp_enqueue_script( 'docsraptor-sidebar', DOCSRAPTOR_PATH . 'assets/js/sidebar.js', array(), DOCSRAPTOR_VERSION, true );
 		wp_localize_script(
 			'docsraptor-sidebar',
@@ -116,16 +146,23 @@ function docsraptor_enqueue_assets() {
 				'nonce'      => wp_create_nonce( 'docsraptor_reorder_docs' ),
 			)
 		);
-		wp_enqueue_script( 'docsraptor-search', DOCSRAPTOR_PATH . 'assets/js/search.js', array(), DOCSRAPTOR_VERSION, true );
-		wp_localize_script(
-			'docsraptor-search',
-			'docsraptorSearch',
-			array(
-				'collectionId' => docsraptor_get_current_collection_id( $current_doc_id ),
-			)
-		);
 		wp_enqueue_script( 'docsraptor-toc', DOCSRAPTOR_PATH . 'assets/js/toc.js', array(), DOCSRAPTOR_VERSION, true );
 	}
+}
+
+/**
+ * Check whether the current queried post contains the docs search block.
+ *
+ * @return bool
+ */
+function docsraptor_current_query_has_search_block() {
+	if ( ! is_singular() ) {
+		return false;
+	}
+
+	$post = get_post();
+
+	return $post && has_block( 'docsraptor/docs-search', $post );
 }
 
 // Include custom template for docs CPT and taxonomy if theme doesn't have one.

@@ -1,0 +1,49 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "docsraptor/docs-search",
+	"version": "1.0.1",
+	"title": "Docs Search",
+	"category": "docsraptor",
+	"icon": "search",
+	"description": "Adds a Docs Raptor search trigger that opens the docs search overlay.",
+	"keywords": [
+		"docs",
+		"documentation",
+		"search"
+	],
+	"attributes": {
+		"displayStyle": {
+			"type": "string",
+			"default": "field"
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"filterType": {
+			"type": "string",
+			"default": "all"
+		},
+		"categoryId": {
+			"type": "number",
+			"default": 0
+		},
+		"collectionId": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"html": false,
+		"anchor": true,
+		"align": [
+			"wide",
+			"full"
+		]
+	},
+	"textdomain": "docsraptor",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css"
+}
