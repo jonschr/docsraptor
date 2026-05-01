@@ -7,5 +7,5 @@ return array(
 		'wp-components',
 		'wp-element',
 	),
-	'version'      => DOCSRAPTOR_VERSION,
+	'version'      => file_exists( __DIR__ . '/index.js' ) ? (string) filemtime( __DIR__ . '/index.js' ) : DOCSRAPTOR_VERSION,
 );

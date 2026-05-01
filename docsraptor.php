@@ -9,7 +9,7 @@
  * Plugin Name:    Docs Raptor
  * Plugin URI:     https://elod.in
  * Description:    Create documentation and knowledge bases for anything.
- * Version:        0.3.4
+ * Version:        0.3.7
  * Author:         Jon Schroeder
  * Author URI:     https://elod.in
  * Text Domain:    docsraptor
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define the version of the plugin.
-define( 'DOCSRAPTOR_VERSION', '0.3.4' );
+define( 'DOCSRAPTOR_VERSION', '0.3.7' );
 
 // Set up plugin directories.
 define( 'DOCSRAPTOR_DIR', plugin_dir_path( __FILE__ ) );
@@ -55,6 +55,22 @@ function docsraptor_require_files_recursive( $directory ) {
 
 // Require_once all files in /lib and its subdirectories.
 docsraptor_require_files_recursive( DOCSRAPTOR_DIR . 'lib' );
+
+/**
+ * Get a cache-busting asset version.
+ *
+ * @param string $relative_path Asset path relative to the plugin directory.
+ * @return string
+ */
+function docsraptor_get_asset_version( $relative_path ) {
+	$file_path = DOCSRAPTOR_DIR . ltrim( $relative_path, '/' );
+
+	if ( file_exists( $file_path ) ) {
+		return (string) filemtime( $file_path );
+	}
+
+	return DOCSRAPTOR_VERSION;
+}
 
 // Register the block template used by block themes for single docs.
 add_action( 'init', 'docsraptor_register_block_templates' );
@@ -123,20 +139,21 @@ function docsraptor_enqueue_frontend_assets() {
 	}
 
 	// Styles
-	wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), DOCSRAPTOR_VERSION );
+	wp_enqueue_style( 'docsraptor-main', DOCSRAPTOR_PATH . 'assets/css/main.css', array(), docsraptor_get_asset_version( 'assets/css/main.css' ) );
 
 	// Scripts
-	wp_enqueue_script( 'docsraptor-search', DOCSRAPTOR_PATH . 'assets/js/search.js', array(), DOCSRAPTOR_VERSION, true );
+	wp_enqueue_script( 'docsraptor-search', DOCSRAPTOR_PATH . 'assets/js/search.js', array(), docsraptor_get_asset_version( 'assets/js/search.js' ), true );
 	wp_localize_script(
 		'docsraptor-search',
 		'docsraptorSearch',
 		array(
 			'collectionId' => docsraptor_get_current_collection_id( $current_doc_id ),
+			'restUrl'      => esc_url_raw( rest_url() ),
 		)
 	);
 
 	if ( is_singular( 'docs' ) || is_tax( array( 'docs-categories', 'docs-collections' ) ) ) {
-		wp_enqueue_script( 'docsraptor-sidebar', DOCSRAPTOR_PATH . 'assets/js/sidebar.js', array(), DOCSRAPTOR_VERSION, true );
+		wp_enqueue_script( 'docsraptor-sidebar', DOCSRAPTOR_PATH . 'assets/js/sidebar.js', array(), docsraptor_get_asset_version( 'assets/js/sidebar.js' ), true );
 		wp_localize_script(
 			'docsraptor-sidebar',
 			'docsraptorSidebar',
@@ -146,7 +163,7 @@ function docsraptor_enqueue_frontend_assets() {
 				'nonce'      => wp_create_nonce( 'docsraptor_reorder_docs' ),
 			)
 		);
-		wp_enqueue_script( 'docsraptor-toc', DOCSRAPTOR_PATH . 'assets/js/toc.js', array(), DOCSRAPTOR_VERSION, true );
+		wp_enqueue_script( 'docsraptor-toc', DOCSRAPTOR_PATH . 'assets/js/toc.js', array(), docsraptor_get_asset_version( 'assets/js/toc.js' ), true );
 	}
 }
 

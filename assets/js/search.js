@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
+	let allDocsFilterKey = null;
+	let activeFetchKey = null;
 	const docsCache = {};
 	let allTerms = null;
 	let activeQuery = '';
@@ -43,6 +45,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		window.docsraptorSearch && window.docsraptorSearch.collectionId
 			? parseInt(window.docsraptorSearch.collectionId, 10)
 			: null;
+	const restUrl =
+		window.docsraptorSearch && window.docsraptorSearch.restUrl
+			? window.docsraptorSearch.restUrl.replace(/\/$/, '')
+			: '/wp-json';
 
 	// Re-enable hover effects when mouse moves over suggestions
 	if (modalSuggestions) {
@@ -108,10 +114,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	function showModal(trigger) {
 		activeFilter = trigger ? getTriggerFilter(trigger) : getTriggerFilter({});
+		allDocs = null;
+		allDocsFilterKey = null;
 		modal.classList.add('show');
 		modalInput.focus();
 		currentSuggestionIndex = -1;
 		fetchDocsForFilter(activeFilter);
+	}
+
+	function getDefaultSearchTrigger() {
+		return (
+			Array.from(searchInputs).find((input) => {
+				const rect = input.getBoundingClientRect();
+				return rect.width > 0 && rect.height > 0;
+			}) || searchInputs[0]
+		);
 	}
 
 	function hideModal() {
@@ -120,20 +137,27 @@ document.addEventListener('DOMContentLoaded', function () {
 		modalInput.value = '';
 		activeQuery = '';
 		activeFilter = null;
+		activeFetchKey = null;
 		currentSuggestionIndex = -1;
 	}
 
 	function fetchRestPages(url) {
 		return fetch(url)
-			.then((response) =>
-				response.json().then((data) => ({
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error(
+						'Docs search request failed with status ' + response.status
+					);
+				}
+
+				return response.json().then((data) => ({
 					data,
 					totalPages: parseInt(
 						response.headers.get('X-WP-TotalPages') || '1',
 						10
 					),
-				}))
-			)
+				}));
+			})
 			.then((firstPage) => {
 				if (firstPage.totalPages <= 1) {
 					return firstPage.data;
@@ -146,12 +170,18 @@ document.addEventListener('DOMContentLoaded', function () {
 							response.json()
 						)
 					);
-				}
+		}
 
-				return Promise.all(pageRequests).then((pages) =>
-					firstPage.data.concat(...pages)
-				);
-			});
+		return Promise.all(pageRequests).then((pages) =>
+			firstPage.data.concat(...pages)
+		);
+	});
+	}
+
+	function renderSearchMessage(message) {
+		modalSuggestions.innerHTML =
+			'<div class="docs-search-message">' + escapeHtml(message) + '</div>';
+		currentSuggestionIndex = -1;
 	}
 
 	function getFilterCacheKey(filter) {
@@ -159,38 +189,50 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function getDocsUrlForFilter(filter) {
-		let docsUrl = '/wp-json/wp/v2/docs?per_page=100&_embed';
+		let docsUrl = restUrl + '/docsraptor/v1/search-docs';
+		const params = [];
 
 		if (filter.type === 'category' && filter.id) {
-			docsUrl += '&docs-categories=' + encodeURIComponent(filter.id);
+			params.push('category_id=' + encodeURIComponent(filter.id));
 		}
 
 		if (filter.type === 'collection' && filter.id) {
-			docsUrl += '&docs-collections=' + encodeURIComponent(filter.id);
+			params.push('collection_id=' + encodeURIComponent(filter.id));
 		}
 
-		return docsUrl;
+		if (filter.type === 'unassigned') {
+			params.push('unassigned_collection=1');
+		}
+
+		return params.length ? docsUrl + '?' + params.join('&') : docsUrl;
 	}
 
 	function fetchDocsForFilter(filter) {
 		const cacheKey = getFilterCacheKey(filter);
 		const docsUrl = getDocsUrlForFilter(filter);
-		const termsUrl = '/wp-json/wp/v2/docs-categories?per_page=100';
+		const termsUrl = restUrl + '/wp/v2/docs-categories?per_page=100';
 
 		if (docsCache[cacheKey] && allTerms) {
 			allDocs = docsCache[cacheKey];
+			allDocsFilterKey = cacheKey;
 			if (activeQuery.length >= 2) {
 				filterSuggestions(activeQuery);
 			}
 			return;
 		}
 
+		activeFetchKey = cacheKey;
 		Promise.all([
 			fetchRestPages(docsUrl),
 			allTerms ? Promise.resolve(null) : fetchRestPages(termsUrl),
 		])
 			.then(([docs, terms]) => {
+				if (activeFetchKey !== cacheKey) {
+					return;
+				}
+
 				allDocs = docs;
+				allDocsFilterKey = cacheKey;
 				docsCache[cacheKey] = docs;
 				if (terms) {
 					allTerms = terms.reduce((map, term) => {
@@ -204,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			})
 			.catch((error) => {
 				console.error('Error fetching docs or terms:', error);
+				renderSearchMessage('Search is temporarily unavailable.');
 			});
 	}
 
@@ -214,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (modal.classList.contains('show')) {
 				hideModal();
 			} else {
-				showModal();
+				showModal(getDefaultSearchTrigger());
 			}
 		}
 		if (e.key === 'Escape' && modal.classList.contains('show')) {
@@ -407,7 +450,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function filterSuggestions(query) {
-		if (!allDocs) {
+		const filter = activeFilter || getTriggerFilter({});
+		const filterKey = getFilterCacheKey(filter);
+
+		if (!allDocs || allDocsFilterKey !== filterKey) {
 			return;
 		}
 
@@ -416,7 +462,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		// Filter data based on search query
 		const normalizedQuery = query.toLowerCase();
-		const filter = activeFilter || getTriggerFilter({});
 		const filteredData = allDocs
 			.filter((post) => {
 				if (filter.type === 'all') {
@@ -475,8 +520,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				document.querySelectorAll('.docs-search-suggestions-modal a')
 			);
 		} else {
-			modalSuggestions.innerHTML = '';
-			currentSuggestionIndex = -1;
+			renderSearchMessage('No matching docs found.');
 		}
 	}
 

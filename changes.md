@@ -1,5 +1,20 @@
+## Version 0.3.7
+
+- Updated the Command/Ctrl+K shortcut to use the visible Docs Search block trigger so embedded block filters match click behavior.
+
+## Version 0.3.6
+
+- Passed the WordPress REST base URL into search scripts so embedded search blocks do not depend on hardcoded REST paths.
+- Added visible search messages when the embedded search index request fails or returns no matches.
+
+## Version 0.3.5
+
+- Added a Docs Raptor REST search index endpoint so embedded search blocks apply category and collection filters server-side.
+- Prevented stale search index fetches from rendering results for a previously active filter.
+
 ## Version 0.3.4
 
+- Added file-based cache busting for Docs Raptor frontend JavaScript assets.
 - Stabilized the Docs Search block for use on non-doc pages with collection-filtered search.
 - Moved the shared search modal out of block wrapper context so overlay styles behave consistently.
 - Added optional visible labels for field-style search blocks while allowing empty labels.
