@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "docsraptor/taxonomy-docs-content",
+	"version": "1.0.0",
+	"title": "Docs Taxonomy Content",
+	"category": "docsraptor",
+	"icon": "category",
+	"description": "Displays the Docs Raptor taxonomy archive layout.",
+	"keywords": [
+		"docs",
+		"documentation",
+		"taxonomy",
+		"category"
+	],
+	"supports": {
+		"html": false
+	},
+	"textdomain": "docsraptor",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css"
+}

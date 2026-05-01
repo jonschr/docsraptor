@@ -143,6 +143,13 @@
 	-webkit-box-orient: vertical;
 }
 
+.search-highlight {
+	background: #fff2a8;
+	color: inherit;
+	border-radius: 2px;
+	padding: 0 2px;
+}
+
 .docs-search-suggestions {
 	position: absolute;
 	background: white;

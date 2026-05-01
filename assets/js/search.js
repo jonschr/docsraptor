@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	let currentSuggestionIndex = -1;
 	let allDocs = null;
 	let allTerms = null;
+	let activeQuery = '';
+	const currentCollectionId =
+		window.docsraptorSearch && window.docsraptorSearch.collectionId
+			? parseInt(window.docsraptorSearch.collectionId, 10)
+			: null;
 
 	// Re-enable hover effects when mouse moves over suggestions
 	if (modalSuggestions) {
@@ -54,15 +59,47 @@ document.addEventListener('DOMContentLoaded', function () {
 		modal.classList.remove('show');
 		modalSuggestions.innerHTML = '';
 		modalInput.value = '';
+		activeQuery = '';
 		currentSuggestionIndex = -1;
+	}
+
+	function fetchRestPages(url) {
+		return fetch(url)
+			.then((response) =>
+				response.json().then((data) => ({
+					data,
+					totalPages: parseInt(
+						response.headers.get('X-WP-TotalPages') || '1',
+						10
+					),
+				}))
+			)
+			.then((firstPage) => {
+				if (firstPage.totalPages <= 1) {
+					return firstPage.data;
+				}
+
+				const pageRequests = [];
+				for (let page = 2; page <= firstPage.totalPages; page++) {
+					pageRequests.push(
+						fetch(url + '&page=' + page).then((response) =>
+							response.json()
+						)
+					);
+				}
+
+				return Promise.all(pageRequests).then((pages) =>
+					firstPage.data.concat(...pages)
+				);
+			});
 	}
 
 	function fetchAllDocs() {
 		const docsUrl = '/wp-json/wp/v2/docs?per_page=100&_embed';
 		const termsUrl = '/wp-json/wp/v2/docs-categories?per_page=100';
 		Promise.all([
-			fetch(docsUrl).then((response) => response.json()),
-			fetch(termsUrl).then((response) => response.json()),
+			fetchRestPages(docsUrl),
+			fetchRestPages(termsUrl),
 		])
 			.then(([docs, terms]) => {
 				allDocs = docs;
@@ -70,6 +107,9 @@ document.addEventListener('DOMContentLoaded', function () {
 					map[term.id] = term;
 					return map;
 				}, {});
+				if (activeQuery.length >= 2) {
+					filterSuggestions(activeQuery);
+				}
 			})
 			.catch((error) => {
 				console.error('Error fetching docs or terms:', error);
@@ -102,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	// Search in modal
 	modalInput.addEventListener('input', function () {
 		const query = this.value.trim();
+		activeQuery = query;
 		if (query.length < 2) {
 			modalSuggestions.innerHTML = '';
 			currentSuggestionIndex = -1;
@@ -206,6 +247,62 @@ document.addEventListener('DOMContentLoaded', function () {
 		return tmp.textContent || tmp.innerText || '';
 	}
 
+	function escapeHtml(text) {
+		const div = document.createElement('DIV');
+		div.textContent = text;
+		return div.innerHTML;
+	}
+
+	function escapeAttribute(text) {
+		return escapeHtml(text).replace(/"/g, '&quot;');
+	}
+
+	function escapeRegExp(text) {
+		return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	}
+
+	function highlightText(text, query) {
+		const escapedQuery = escapeRegExp(query);
+		if (!escapedQuery) {
+			return escapeHtml(text);
+		}
+
+		const matcher = new RegExp('(' + escapedQuery + ')', 'gi');
+		return String(text)
+			.split(matcher)
+			.map((part) =>
+				part.toLowerCase() === query.toLowerCase()
+					? '<mark class="search-highlight">' +
+						escapeHtml(part) +
+						'</mark>'
+					: escapeHtml(part)
+			)
+			.join('');
+	}
+
+	function getPostTerms(post, taxonomy) {
+		return post._embedded && post._embedded['wp:term']
+			? post._embedded['wp:term']
+					.flat()
+					.filter((term) => term.taxonomy === taxonomy)
+			: [];
+	}
+
+	function getPostCollectionIds(post) {
+		if (Array.isArray(post['docs-collections'])) {
+			return post['docs-collections'];
+		}
+
+		return getPostTerms(post, 'docs-collections').map((term) => term.id);
+	}
+
+	function getSearchableTermNames(post) {
+		return getPostTerms(post, 'docs-categories')
+			.concat(getPostTerms(post, 'docs-collections'))
+			.map((term) => term.name)
+			.join(' ');
+	}
+
 	function filterSuggestions(query) {
 		if (!allDocs) {
 			return;
@@ -215,35 +312,47 @@ document.addEventListener('DOMContentLoaded', function () {
 		modalSuggestions.classList.add('hover-disabled');
 
 		// Filter data based on search query
+		const normalizedQuery = query.toLowerCase();
 		const filteredData = allDocs
-			.filter(
-				(post) =>
-					post.title.rendered
-						.toLowerCase()
-						.includes(query.toLowerCase()) ||
-					stripHtml(post.content.rendered)
-						.toLowerCase()
-						.includes(query.toLowerCase())
-			)
+			.filter((post) => {
+				const postCollections = getPostCollectionIds(post);
+				if (currentCollectionId) {
+					return postCollections.includes(currentCollectionId);
+				}
+
+				return postCollections.length === 0;
+			})
+			.filter((post) => {
+				const searchableText = [
+					post.title.rendered,
+					stripHtml(post.content.rendered),
+					getSearchableTermNames(post),
+				]
+					.join(' ')
+					.toLowerCase();
+
+				return searchableText.includes(normalizedQuery);
+			})
 			.slice(0, 10); // Limit to 10 results
 
 		if (filteredData.length > 0) {
 			let html = '<ul>';
 			filteredData.forEach((post) => {
 				const path = getTermPath(post);
+				const title = stripHtml(post.title.rendered);
 				const snippet = getSnippet(
 					stripHtml(post.content.rendered),
 					query
 				);
 				html +=
 					'<li><a href="' +
-					post.link +
+					escapeAttribute(post.link) +
 					'"><span class="search-path">' +
-					path +
+					highlightText(path, query) +
 					'</span><strong>' +
-					post.title.rendered +
+					highlightText(title, query) +
 					'</strong><div class="search-snippet">' +
-					snippet +
+					highlightText(snippet, query) +
 					'</div></a></li>';
 			});
 			html += '</ul>';

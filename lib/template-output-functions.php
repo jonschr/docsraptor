@@ -10,12 +10,374 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Get the active docs collection for the current request.
+ *
+ * @param int|null $post_id Optional doc ID to inspect first.
+ * @return int|null Collection term ID, or null for the uncategorized collection pool.
+ */
+function docsraptor_get_current_collection_id( $post_id = null ) {
+	if ( $post_id ) {
+		$post_collections = wp_get_post_terms( $post_id, 'docs-collections', array( 'fields' => 'ids' ) );
+		if ( ! empty( $post_collections ) && ! is_wp_error( $post_collections ) ) {
+			return (int) $post_collections[0];
+		}
+	}
+
+	if ( is_tax( 'docs-collections' ) ) {
+		$term = get_queried_object();
+		if ( $term && isset( $term->term_id ) ) {
+			return (int) $term->term_id;
+		}
+	}
+
+	$collection_slug = get_query_var( 'docs_collection' );
+	if ( empty( $collection_slug ) && isset( $_GET['docs_collection'] ) ) {
+		$collection_slug = sanitize_title( wp_unslash( $_GET['docs_collection'] ) );
+	}
+
+	if ( ! empty( $collection_slug ) ) {
+		$collection = get_term_by( 'slug', $collection_slug, 'docs-collections' );
+		if ( $collection && ! is_wp_error( $collection ) ) {
+			return (int) $collection->term_id;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Build a tax query clause for the active docs collection.
+ *
+ * @param int|null $collection_id Collection term ID, or null for collectionless docs.
+ * @return array Tax query clause.
+ */
+function docsraptor_get_collection_tax_query_clause( $collection_id = null ) {
+	if ( $collection_id ) {
+		return array(
+			'taxonomy'         => 'docs-collections',
+			'field'            => 'term_id',
+			'terms'            => $collection_id,
+			'include_children' => true,
+		);
+	}
+
+	return array(
+		'taxonomy' => 'docs-collections',
+		'operator' => 'NOT EXISTS',
+	);
+}
+
+/**
+ * Get the saved doc order term meta key for a category and collection context.
+ *
+ * @param int|null $collection_id Active collection ID.
+ * @return string Term meta key.
+ */
+function docsraptor_get_doc_order_meta_key( $collection_id = null ) {
+	return '_docsraptor_doc_order_' . (int) $collection_id;
+}
+
+/**
+ * Get the saved uncategorized doc order option key for a collection context.
+ *
+ * @param int|null $collection_id Active collection ID.
+ * @return string Option key.
+ */
+function docsraptor_get_uncategorized_doc_order_option_key( $collection_id = null ) {
+	return 'docsraptor_uncategorized_doc_order_' . (int) $collection_id;
+}
+
+/**
+ * Get the saved category order option key for a parent and collection context.
+ *
+ * @param int      $parent_id     Parent category term ID.
+ * @param int|null $collection_id Active collection ID.
+ * @return string Option key.
+ */
+function docsraptor_get_category_order_option_key( $parent_id = 0, $collection_id = null ) {
+	return 'docsraptor_category_order_' . (int) $collection_id . '_' . (int) $parent_id;
+}
+
+/**
+ * Sort docs by the saved front-end order for a category.
+ *
+ * @param WP_Post[] $posts         Docs to sort.
+ * @param int|null  $category_id   Docs category term ID, or null for uncategorized docs.
+ * @param int|null  $collection_id Active collection ID.
+ * @return WP_Post[] Sorted docs.
+ */
+function docsraptor_sort_posts_by_saved_order( $posts, $category_id, $collection_id = null ) {
+	if ( empty( $posts ) ) {
+		return $posts;
+	}
+
+	if ( $category_id ) {
+		$saved_order = get_term_meta( $category_id, docsraptor_get_doc_order_meta_key( $collection_id ), true );
+	} else {
+		$saved_order = get_option( docsraptor_get_uncategorized_doc_order_option_key( $collection_id ), array() );
+	}
+
+	if ( empty( $saved_order ) || ! is_array( $saved_order ) ) {
+		return $posts;
+	}
+
+	$order_index = array_flip( array_map( 'intval', $saved_order ) );
+	$base_index  = array();
+
+	foreach ( $posts as $index => $post ) {
+		$base_index[ $post->ID ] = $index;
+	}
+
+	usort(
+		$posts,
+		function ( $a, $b ) use ( $order_index, $base_index ) {
+			$a_has_order = isset( $order_index[ $a->ID ] );
+			$b_has_order = isset( $order_index[ $b->ID ] );
+
+			if ( $a_has_order && $b_has_order ) {
+				return $order_index[ $a->ID ] - $order_index[ $b->ID ];
+			}
+
+			if ( $a_has_order ) {
+				return -1;
+			}
+
+			if ( $b_has_order ) {
+				return 1;
+			}
+
+			return $base_index[ $a->ID ] - $base_index[ $b->ID ];
+		}
+	);
+
+	return $posts;
+}
+
+/**
+ * Sort sibling category terms by saved front-end order.
+ *
+ * @param WP_Term[] $terms         Category terms to sort.
+ * @param int       $parent_id     Parent category term ID.
+ * @param int|null  $collection_id Active collection ID.
+ * @return WP_Term[] Sorted category terms.
+ */
+function docsraptor_sort_terms_by_saved_order( $terms, $parent_id = 0, $collection_id = null ) {
+	if ( empty( $terms ) ) {
+		return $terms;
+	}
+
+	$saved_order = get_option( docsraptor_get_category_order_option_key( $parent_id, $collection_id ), array() );
+	if ( empty( $saved_order ) || ! is_array( $saved_order ) ) {
+		return $terms;
+	}
+
+	$order_index = array_flip( array_map( 'intval', $saved_order ) );
+	$base_index  = array();
+
+	foreach ( $terms as $index => $term ) {
+		$base_index[ $term->term_id ] = $index;
+	}
+
+	usort(
+		$terms,
+		function ( $a, $b ) use ( $order_index, $base_index ) {
+			$a_has_order = isset( $order_index[ $a->term_id ] );
+			$b_has_order = isset( $order_index[ $b->term_id ] );
+
+			if ( $a_has_order && $b_has_order ) {
+				return $order_index[ $a->term_id ] - $order_index[ $b->term_id ];
+			}
+
+			if ( $a_has_order ) {
+				return -1;
+			}
+
+			if ( $b_has_order ) {
+				return 1;
+			}
+
+			return $base_index[ $a->term_id ] - $base_index[ $b->term_id ];
+		}
+	);
+
+	return $terms;
+}
+
+/**
+ * Sort each nested category branch by term order, then saved front-end order.
+ *
+ * @param WP_Term[] $terms         Category terms to sort.
+ * @param int|null  $collection_id Active collection ID.
+ * @return WP_Term[] Sorted category terms.
+ */
+function docsraptor_sort_terms_tree( $terms, $collection_id = null ) {
+	if ( empty( $terms ) ) {
+		return $terms;
+	}
+
+	usort(
+		$terms,
+		function ( $a, $b ) {
+			$a_order = isset( $a->term_order ) ? $a->term_order : 0;
+			$b_order = isset( $b->term_order ) ? $b->term_order : 0;
+			return $a_order - $b_order;
+		}
+	);
+
+	$parent_id = isset( $terms[0]->parent ) ? (int) $terms[0]->parent : 0;
+	$terms     = docsraptor_sort_terms_by_saved_order( $terms, $parent_id, $collection_id );
+
+	foreach ( $terms as $term ) {
+		if ( isset( $term->children ) ) {
+			$term->children = docsraptor_sort_terms_tree( $term->children, $collection_id );
+		}
+	}
+
+	return $terms;
+}
+
+/**
+ * Add collection context to docs category links.
+ *
+ * @param WP_Term  $term          The docs category term.
+ * @param int|null $collection_id Active collection ID.
+ * @return string Term link.
+ */
+function docsraptor_get_category_link( $term, $collection_id = null ) {
+	$link = get_term_link( $term );
+	if ( is_wp_error( $link ) || ! $collection_id ) {
+		return $link;
+	}
+
+	$collection = get_term( $collection_id, 'docs-collections' );
+	if ( ! $collection || is_wp_error( $collection ) ) {
+		return $link;
+	}
+
+	return add_query_arg( 'docs_collection', $collection->slug, $link );
+}
+
+/**
+ * Get the first doc URL for a collection pool.
+ *
+ * @param int|null $collection_id Collection term ID, or null for collectionless docs.
+ * @return string The first doc URL, or the site home URL if no docs exist.
+ */
+function docsraptor_get_collection_home_url( $collection_id = null ) {
+	$first_doc_id = docsraptor_get_first_sidebar_doc_id( $collection_id );
+
+	if ( $first_doc_id ) {
+		return get_permalink( $first_doc_id );
+	}
+
+	return home_url( '/' );
+}
+
+/**
+ * Get the first doc ID as it appears in the sidebar.
+ *
+ * @param int|null $collection_id Collection term ID, or null for collectionless docs.
+ * @return int First sidebar doc ID, or 0 if no docs exist.
+ */
+function docsraptor_get_first_sidebar_doc_id( $collection_id = null ) {
+	$uncategorized_posts = get_posts( array(
+		'post_type'      => 'docs',
+		'tax_query'      => array(
+			'relation' => 'AND',
+			array(
+				'taxonomy' => 'docs-categories',
+				'operator' => 'NOT EXISTS',
+			),
+			docsraptor_get_collection_tax_query_clause( $collection_id ),
+		),
+		'posts_per_page' => -1,
+		'orderby'        => 'menu_order title',
+		'order'          => 'ASC',
+	) );
+	$uncategorized_posts = docsraptor_sort_posts_by_saved_order( $uncategorized_posts, null, $collection_id );
+
+	if ( ! empty( $uncategorized_posts ) ) {
+		return (int) $uncategorized_posts[0]->ID;
+	}
+
+	$terms = docsraptor_get_terms_hierarchical( 'docs-categories', $collection_id );
+
+	return docsraptor_get_first_sidebar_doc_id_from_terms( $terms, $collection_id );
+}
+
+/**
+ * Get the first doc ID from an ordered sidebar category tree.
+ *
+ * @param WP_Term[] $terms         Ordered docs category terms.
+ * @param int|null  $collection_id Active collection ID.
+ * @return int First doc ID, or 0 if none found.
+ */
+function docsraptor_get_first_sidebar_doc_id_from_terms( $terms, $collection_id = null ) {
+	if ( empty( $terms ) ) {
+		return 0;
+	}
+
+	foreach ( $terms as $term ) {
+		$term_posts = get_posts( array(
+			'post_type'      => 'docs',
+			'tax_query'      => array(
+				'relation' => 'AND',
+				array(
+					'taxonomy'         => 'docs-categories',
+					'field'            => 'term_id',
+					'terms'            => $term->term_id,
+					'include_children' => false,
+				),
+				docsraptor_get_collection_tax_query_clause( $collection_id ),
+			),
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order title',
+			'order'          => 'ASC',
+		) );
+		$term_posts = docsraptor_sort_posts_by_saved_order( $term_posts, $term->term_id, $collection_id );
+
+		if ( ! empty( $term_posts ) ) {
+			return (int) $term_posts[0]->ID;
+		}
+
+		if ( ! empty( $term->children ) ) {
+			$child_doc_id = docsraptor_get_first_sidebar_doc_id_from_terms( $term->children, $collection_id );
+			if ( $child_doc_id ) {
+				return $child_doc_id;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Output the active docs collection breadcrumb.
+ *
+ * @param int|null $collection_id Active collection ID.
+ */
+function docsraptor_output_collection_breadcrumb( $collection_id = null ) {
+	if ( ! $collection_id ) {
+		return;
+	}
+
+	$collection = get_term( $collection_id, 'docs-collections' );
+	if ( ! $collection || is_wp_error( $collection ) ) {
+		return;
+	}
+
+	$collection_link = docsraptor_get_collection_home_url( $collection_id );
+
+	echo '<a href="' . esc_url( $collection_link ) . '">' . esc_html( $collection->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
+}
+
+/**
  * Get all terms hierarchically organized.
  *
  * @param string $taxonomy The taxonomy to get terms from.
  * @return array Organized terms with children.
  */
-function docsraptor_get_terms_hierarchical( $taxonomy ) {
+function docsraptor_get_terms_hierarchical( $taxonomy, $collection_id = null ) {
 	$terms = get_terms( array(
 		'taxonomy'   => $taxonomy,
 		'hide_empty' => false,
@@ -49,24 +411,12 @@ function docsraptor_get_terms_hierarchical( $taxonomy ) {
 
 	// Sort organized_terms and children by term_order.
 	if ( ! empty( $organized_terms ) ) {
-		usort( $organized_terms, function( $a, $b ) {
-			$a_order = isset( $a->term_order ) ? $a->term_order : 0;
-			$b_order = isset( $b->term_order ) ? $b->term_order : 0;
-			return $a_order - $b_order;
-		} );
-
-		foreach ( $organized_terms as $term ) {
-			if ( isset( $term->children ) ) {
-				usort( $term->children, function( $a, $b ) {
-					$a_order = isset( $a->term_order ) ? $a->term_order : 0;
-					$b_order = isset( $b->term_order ) ? $b->term_order : 0;
-					return $a_order - $b_order;
-				} );
-			}
-		}
+		$organized_terms = docsraptor_sort_terms_tree( $organized_terms, $collection_id );
 
 		// Filter out empty terms (no posts and no children with posts).
-		$organized_terms = array_filter( $organized_terms, 'docsraptor_term_has_content' );
+		$organized_terms = array_filter( $organized_terms, function( $term ) use ( $collection_id ) {
+			return docsraptor_term_has_content( $term, $collection_id );
+		} );
 	}
 
 	return $organized_terms;
@@ -78,16 +428,18 @@ function docsraptor_get_terms_hierarchical( $taxonomy ) {
  * @param object $term The term object.
  * @return bool Whether the term has content.
  */
-function docsraptor_term_has_content( $term ) {
+function docsraptor_term_has_content( $term, $collection_id = null ) {
 	$args = array(
 		'post_type'      => 'docs',
 		'tax_query'      => array(
+			'relation' => 'AND',
 			array(
 				'taxonomy'         => 'docs-categories',
 				'field'            => 'term_id',
 				'terms'            => $term->term_id,
 				'include_children' => false,
 			),
+			docsraptor_get_collection_tax_query_clause( $collection_id ),
 		),
 		'posts_per_page' => 1,
 		'fields'         => 'ids',
@@ -99,7 +451,9 @@ function docsraptor_term_has_content( $term ) {
 	}
 
 	if ( isset( $term->children ) && ! empty( $term->children ) ) {
-		$term->children = array_filter( $term->children, 'docsraptor_term_has_content' );
+		$term->children = array_filter( $term->children, function( $child ) use ( $collection_id ) {
+			return docsraptor_term_has_content( $child, $collection_id );
+		} );
 		if ( ! empty( $term->children ) ) {
 			return true;
 		}
@@ -117,14 +471,15 @@ function docsraptor_term_has_content( $term ) {
  * @param int|null $current_term_id The current term ID (for taxonomy pages).
  * @param int      $level           The current nesting level.
  */
-function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $deepest_term_id = null, $current_term_id = null, $level = 0 ) {
+function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $deepest_term_id = null, $current_term_id = null, $level = 0, $collection_id = null ) {
 	// Return early if no terms.
 	if ( empty( $terms ) ) {
 		return;
 	}
 
 	if ( 0 === $level ) {
-		echo '<ul class="docs-list open">';
+		$root_sortable_class = current_user_can( 'manage_options' ) ? ' docs-sortable-categories' : '';
+		echo '<ul class="docs-list open' . esc_attr( $root_sortable_class ) . '" data-sort-type="category" data-parent-id="0" data-collection-id="' . esc_attr( (int) $collection_id ) . '">';
 	}
 
 	foreach ( $terms as $term ) {
@@ -152,27 +507,36 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 		$term_posts_args = array(
 			'post_type'      => 'docs',
 			'tax_query'      => array(
+				'relation' => 'AND',
 				array(
 					'taxonomy'         => 'docs-categories',
 					'field'            => 'term_id',
 					'terms'            => $term->term_id,
 					'include_children' => false,
 				),
+				docsraptor_get_collection_tax_query_clause( $collection_id ),
 			),
 			'posts_per_page' => -1,
 			'orderby'        => 'menu_order title',
 			'order'          => 'ASC',
 		);
 		$term_posts  = get_posts( $term_posts_args );
+		$term_posts  = docsraptor_sort_posts_by_saved_order( $term_posts, $term->term_id, $collection_id );
 		$has_content = ! empty( $term_posts ) || $has_children;
+		$can_reorder = current_user_can( 'manage_options' );
 		?>
-		<li class="docs-category-item <?php echo $is_current_term ? 'current' : ''; ?>">
+		<li class="docs-category-item <?php echo $is_current_term ? 'current' : ''; ?>" data-term-id="<?php echo esc_attr( $term->term_id ); ?>">
 			<div class="docs-category <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $is_current_term ? 'current' : ''; ?> <?php echo $has_content ? 'has-children' : ''; ?>">
 				<div class="docs-category-toggle <?php echo ! $has_content ? 'no-toggle' : ''; ?>" role="button" tabindex="0" aria-expanded="<?php echo $is_current_term ? 'true' : 'false'; ?>">
-					<a href="<?php echo esc_url( get_term_link( $term ) ); ?>" class="docs-category-link"><?php echo esc_html( $term->name ); ?></a>
+					<?php if ( $can_reorder ) : ?>
+						<button type="button" class="docs-reorder-handle docs-category-reorder-handle" aria-label="<?php echo esc_attr__( 'Reorder category', 'docsraptor' ); ?>">
+							<span aria-hidden="true">::</span>
+						</button>
+					<?php endif; ?>
+					<a href="<?php echo esc_url( docsraptor_get_category_link( $term, $collection_id ) ); ?>" class="docs-category-link"><?php echo esc_html( $term->name ); ?></a>
 				</div>
 				<?php if ( $has_content ) : ?>
-					<ul class="docs-list <?php echo $is_current_term ? 'open' : ''; ?>">
+					<ul class="docs-list <?php echo $is_current_term ? 'open' : ''; ?> <?php echo $can_reorder ? 'docs-sortable-docs docs-sortable-categories' : ''; ?>" data-sort-type="mixed" data-category-id="<?php echo esc_attr( $term->term_id ); ?>" data-parent-id="<?php echo esc_attr( $term->term_id ); ?>" data-collection-id="<?php echo esc_attr( (int) $collection_id ); ?>">
 						<?php foreach ( $term_posts as $post_item ) : ?>
 							<?php
 							$is_current_post = false;
@@ -180,7 +544,12 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 								$is_current_post = ( $current_post_id === $post_item->ID && $term->term_id === $deepest_term_id );
 							}
 							?>
-							<li class="docs-post <?php echo $is_current_post ? 'current' : ''; ?>">
+							<li class="docs-post <?php echo $is_current_post ? 'current' : ''; ?>" data-doc-id="<?php echo esc_attr( $post_item->ID ); ?>">
+								<?php if ( $can_reorder ) : ?>
+									<button type="button" class="docs-reorder-handle" aria-label="<?php echo esc_attr__( 'Reorder document', 'docsraptor' ); ?>">
+										<span aria-hidden="true">::</span>
+									</button>
+								<?php endif; ?>
 								<a href="<?php echo get_permalink( $post_item->ID ); ?>">
 									<?php echo esc_html( $post_item->post_title ); ?>
 								</a>
@@ -188,7 +557,7 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 						<?php endforeach; ?>
 						<?php
 						if ( $has_children ) {
-							docsraptor_display_terms_hierarchy( $term->children, $current_post_id, $deepest_term_id, $current_term_id, $level + 1 );
+							docsraptor_display_terms_hierarchy( $term->children, $current_post_id, $deepest_term_id, $current_term_id, $level + 1, $collection_id );
 						}
 						?>
 					</ul>
@@ -210,6 +579,7 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
  * @param int|null $current_term_id The current term ID (for taxonomy pages).
  */
 function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = null ) {
+	$collection_id = docsraptor_get_current_collection_id( $current_post_id );
 	?>
 	<button type="button" class="docs-collapse-all" aria-label="Collapse all categories">
 		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
@@ -220,34 +590,49 @@ function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = 
 	$uncategorized_args = array(
 		'post_type'      => 'docs',
 		'tax_query'      => array(
+			'relation' => 'AND',
 			array(
 				'taxonomy' => 'docs-categories',
 				'operator' => 'NOT EXISTS',
 			),
+			docsraptor_get_collection_tax_query_clause( $collection_id ),
 		),
 		'posts_per_page' => -1,
 		'orderby'        => 'menu_order title',
 		'order'          => 'ASC',
 	);
 	$uncategorized_posts = get_posts( $uncategorized_args );
+	$uncategorized_posts = docsraptor_sort_posts_by_saved_order( $uncategorized_posts, null, $collection_id );
+	$can_reorder         = current_user_can( 'manage_options' );
 
 	if ( ! empty( $uncategorized_posts ) ) :
+		?>
+		<div class="docs-uncategorized-list <?php echo $can_reorder ? 'docs-sortable-docs' : ''; ?>" data-sort-type="uncategorized" data-category-id="0" data-collection-id="<?php echo esc_attr( (int) $collection_id ); ?>">
+		<?php
 		foreach ( $uncategorized_posts as $post_item ) :
 			$current = '';
 			if ( $current_post_id && $current_post_id === $post_item->ID ) {
 				$current = 'current';
 			}
 			?>
-			<div class="docs-type uncategorized-post <?php echo esc_attr( $current ); ?>">
+			<div class="docs-type uncategorized-post <?php echo esc_attr( $current ); ?>" data-doc-id="<?php echo esc_attr( $post_item->ID ); ?>">
+				<?php if ( $can_reorder ) : ?>
+					<button type="button" class="docs-reorder-handle" aria-label="<?php echo esc_attr__( 'Reorder document', 'docsraptor' ); ?>">
+						<span aria-hidden="true">::</span>
+					</button>
+				<?php endif; ?>
 				<a href="<?php echo esc_url( get_permalink( $post_item->ID ) ); ?>">
 					<?php echo esc_html( $post_item->post_title ); ?>
 				</a>
 			</div>
 			<?php
 		endforeach;
+		?>
+		</div>
+		<?php
 	endif;
 
-	$terms = docsraptor_get_terms_hierarchical( 'docs-categories' );
+	$terms = docsraptor_get_terms_hierarchical( 'docs-categories', $collection_id );
 
 	// Find the deepest term for the current post to highlight only there.
 	$deepest_term_id = null;
@@ -265,7 +650,7 @@ function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = 
 	}
 
 	if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) :
-		docsraptor_display_terms_hierarchy( $terms, $current_post_id, $deepest_term_id, $current_term_id );
+		docsraptor_display_terms_hierarchy( $terms, $current_post_id, $deepest_term_id, $current_term_id, 0, $collection_id );
 	endif;
 }
 
@@ -320,71 +705,16 @@ function docsraptor_output_search_modal() {
  * @return string The URL to the docs home.
  */
 function docsraptor_get_home_url() {
-	// First check for uncategorized posts.
-	$uncategorized_args = array(
-		'post_type'      => 'docs',
-		'tax_query'      => array(
-			array(
-				'taxonomy' => 'docs-categories',
-				'operator' => 'NOT EXISTS',
-			),
-		),
-		'posts_per_page' => 1,
-		'orderby'        => 'menu_order title',
-		'order'          => 'ASC',
-	);
-	$uncategorized_posts = get_posts( $uncategorized_args );
+	$collection_id = docsraptor_get_current_collection_id( get_the_ID() );
 
-	if ( ! empty( $uncategorized_posts ) ) {
-		return get_permalink( $uncategorized_posts[0]->ID );
-	}
-
-	// Then check for first category with content (by term_order).
-	$terms = get_terms( array(
-		'taxonomy'   => 'docs-categories',
-		'hide_empty' => false,
-		'parent'     => 0,
-		'orderby'    => 'term_order',
-		'order'      => 'ASC',
-	) );
-	if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-		foreach ( $terms as $term ) {
-			// Check if this term has any posts (including in children).
-			$posts_in_term = get_posts( array(
-				'post_type'      => 'docs',
-				'tax_query'      => array(
-					array(
-						'taxonomy'         => 'docs-categories',
-						'field'            => 'term_id',
-						'terms'            => $term->term_id,
-						'include_children' => true,
-					),
-				),
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-			) );
-			if ( ! empty( $posts_in_term ) ) {
-				$term_link = get_term_link( $term );
-				if ( ! is_wp_error( $term_link ) ) {
-					return $term_link;
-				}
-			}
+	if ( is_tax( 'docs-collections' ) ) {
+		$term = get_queried_object();
+		if ( $term && isset( $term->term_id ) ) {
+			$collection_id = (int) $term->term_id;
 		}
 	}
 
-	// Fallback: get the very first doc post.
-	$first_doc = get_posts( array(
-		'post_type'      => 'docs',
-		'posts_per_page' => 1,
-		'orderby'        => 'menu_order title',
-		'order'          => 'ASC',
-	) );
-	if ( ! empty( $first_doc ) ) {
-		return get_permalink( $first_doc[0]->ID );
-	}
-
-	// Final fallback if no docs exist at all.
-	return home_url( '/' );
+	return docsraptor_get_collection_home_url( $collection_id );
 }
 
 /**
@@ -407,10 +737,13 @@ function docsraptor_output_home_icon() {
  * @param int $post_id The post ID.
  */
 function docsraptor_output_breadcrumbs( $post_id ) {
+	$collection_id = docsraptor_get_current_collection_id( $post_id );
 	?>
 	<div class="docs-breadcrumbs">
 		<?php docsraptor_output_home_icon(); ?>
 		<?php
+		docsraptor_output_collection_breadcrumb( $collection_id );
+
 		$post_terms = wp_get_post_terms( $post_id, 'docs-categories' );
 		if ( ! empty( $post_terms ) && ! is_wp_error( $post_terms ) ) :
 			// Get all ancestors for the deepest term.
@@ -430,7 +763,7 @@ function docsraptor_output_breadcrumbs( $post_id ) {
 			foreach ( $ancestors as $ancestor_id ) {
 				$ancestor = get_term( $ancestor_id, 'docs-categories' );
 				if ( $ancestor && ! is_wp_error( $ancestor ) ) {
-					$ancestor_link = get_term_link( $ancestor );
+					$ancestor_link = docsraptor_get_category_link( $ancestor, $collection_id );
 					if ( ! is_wp_error( $ancestor_link ) ) {
 						echo '<a href="' . esc_url( $ancestor_link ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
 					}
@@ -438,7 +771,7 @@ function docsraptor_output_breadcrumbs( $post_id ) {
 			}
 			?>
 			<?php
-			$deepest_link = get_term_link( $deepest_term );
+			$deepest_link = docsraptor_get_category_link( $deepest_term, $collection_id );
 			if ( ! is_wp_error( $deepest_link ) ) :
 			?>
 			<a href="<?php echo esc_url( $deepest_link ); ?>"><?php echo esc_html( $deepest_term->name ); ?></a><span class="docs-breadcrumb-sep">›</span>
@@ -455,17 +788,23 @@ function docsraptor_output_breadcrumbs( $post_id ) {
  * @param object $term The term object.
  */
 function docsraptor_output_term_breadcrumbs( $term ) {
+	$collection_id = docsraptor_get_current_collection_id();
+	$taxonomy      = isset( $term->taxonomy ) ? $term->taxonomy : 'docs-categories';
 	?>
 	<div class="docs-breadcrumbs">
 		<?php docsraptor_output_home_icon(); ?>
 		<?php
-		$ancestors = get_ancestors( $term->term_id, 'docs-categories' );
+		if ( 'docs-categories' === $taxonomy ) {
+			docsraptor_output_collection_breadcrumb( $collection_id );
+		}
+
+		$ancestors = get_ancestors( $term->term_id, $taxonomy );
 		if ( ! empty( $ancestors ) ) :
 			$ancestors = array_reverse( $ancestors );
 			foreach ( $ancestors as $ancestor_id ) {
-				$ancestor = get_term( $ancestor_id, 'docs-categories' );
+				$ancestor = get_term( $ancestor_id, $taxonomy );
 				if ( $ancestor && ! is_wp_error( $ancestor ) ) {
-					$ancestor_link = get_term_link( $ancestor );
+					$ancestor_link = 'docs-categories' === $taxonomy ? docsraptor_get_category_link( $ancestor, $collection_id ) : get_term_link( $ancestor );
 					if ( ! is_wp_error( $ancestor_link ) ) {
 						echo '<a href="' . esc_url( $ancestor_link ) . '">' . esc_html( $ancestor->name ) . '</a><span class="docs-breadcrumb-sep">›</span>';
 					}

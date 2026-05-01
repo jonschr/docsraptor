@@ -46,6 +46,10 @@
 	padding: 0;
 }
 
+.editor-styles-wrapper .docsraptor-note__content > p:last-child {
+	margin-bottom: 0;
+}
+
 .editor-styles-wrapper .docsraptor-note__header {
 	display: flex;
 	align-items: center;

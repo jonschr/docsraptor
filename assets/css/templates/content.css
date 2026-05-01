@@ -59,6 +59,15 @@
 	h3 {
 		font-size: var(--heading-3);
 	}
+
+	code:not(pre code) {
+		padding: 0.1em 0.35em;
+		border: 1px solid rgba(0, 0, 0, 0.08);
+		border-radius: 3px;
+		background: rgba(0, 0, 0, 0.045);
+		color: var(--docsraptor-heading-color);
+		font-size: 0.9em;
+	}
 }
 
 /* ==========================================================================

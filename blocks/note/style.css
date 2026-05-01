@@ -59,6 +59,10 @@
 	padding: 0;
 }
 
+.docsraptor-note__content > p:last-child {
+	margin-bottom: 0;
+}
+
 /* CSS-based icons using pseudo-elements with CSS masks */
 .docsraptor-note--info .docsraptor-note__icon::before {
 	content: '';

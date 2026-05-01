@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "docsraptor/single-doc-content",
+	"version": "1.0.0",
+	"title": "Single Doc Content",
+	"category": "docsraptor",
+	"icon": "media-document",
+	"description": "Displays the Docs Raptor single doc layout.",
+	"keywords": [
+		"docs",
+		"documentation",
+		"single"
+	],
+	"usesContext": [
+		"postId",
+		"postType"
+	],
+	"supports": {
+		"html": false
+	},
+	"textdomain": "docsraptor",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css"
+}

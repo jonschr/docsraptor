@@ -22,6 +22,7 @@
 	overflow: hidden;
 
 	&.child {
+		margin-left: 10px;
 		background-color: rgba(0, 0, 0, 0.03);
 		border: 1px solid rgba(0, 0, 0, 0.05);
 
@@ -58,6 +59,8 @@
 	color: var(--docsraptor-text-color);
 	position: relative;
 	border-radius: 0;
+	display: flex;
+	align-items: center;
 
 	&::after {
 		content: '';
@@ -96,6 +99,8 @@
 	text-decoration: none;
 	transition: color 0.2s ease;
 	display: block;
+	flex: 1;
+	min-width: 0;
 	padding: 6px 0;
 
 	&:hover {
@@ -104,8 +109,13 @@
 }
 
 .docs-type.uncategorized-post {
+	display: flex;
+	align-items: center;
+
 	a {
 		display: block;
+		flex: 1;
+		min-width: 0;
 		padding: 6px 0;
 		color: var(--docsraptor-text-color);
 		text-decoration: none;
@@ -156,7 +166,7 @@
 
 	> li > a {
 		display: block;
-		padding: 6px 0;
+		padding: 6px 0 6px 2px;
 		color: var(--docsraptor-text-color);
 		text-decoration: none;
 		transition: color 0.2s ease;
@@ -165,6 +175,78 @@
 
 	a:hover {
 		color: var(--docsraptor-primary-color);
+	}
+}
+
+.docs-post {
+	position: relative;
+	display: flex;
+	align-items: center;
+
+	> a {
+		flex: 1;
+		min-width: 0;
+	}
+
+	&.is-dragging {
+		opacity: 0.45;
+	}
+}
+
+.docs-reorder-handle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 24px;
+	margin: 0 4px 0 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: rgba(0, 0, 0, 0.35);
+	cursor: grab;
+	font-size: 12px;
+	line-height: 1;
+	touch-action: none;
+	user-select: none;
+
+	&:hover,
+	&:focus {
+		color: var(--docsraptor-primary-color);
+		outline: none;
+	}
+
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+.docs-sortable-docs.is-saving,
+.docs-sortable-categories.is-saving {
+	cursor: progress;
+}
+
+.docs-sortable-docs.is-saved,
+.docs-sortable-categories.is-saved {
+	border-left-color: rgba(16, 185, 129, 0.55);
+}
+
+.docs-sortable-docs.has-save-error,
+.docs-sortable-categories.has-save-error {
+	border-left-color: rgba(220, 38, 38, 0.6);
+}
+
+.docs-is-reordering {
+	cursor: grabbing;
+	user-select: none;
+}
+
+.docs-category > .docs-list {
+	margin-left: 10px;
+	border-left: 1px solid rgba(0, 0, 0, 0.08);
+
+	li {
+		padding-left: 10px;
 	}
 }
 

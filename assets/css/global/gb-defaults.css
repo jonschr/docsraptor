@@ -4,7 +4,9 @@
 body.single-docs .site.grid-container,
 body.single-docs .site.grid-container .site-content,
 body.tax-docs-categories .site.grid-container,
-body.tax-docs-categories .site.grid-container .site-content {
+body.tax-docs-categories .site.grid-container .site-content,
+body.tax-docs-collections .site.grid-container,
+body.tax-docs-collections .site.grid-container .site-content {
 	width: 100%;
 	max-width: 100%;
 	padding: 0;

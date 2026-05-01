@@ -1,0 +1,11 @@
+.wp-block-docsraptor-single-doc-content,
+.docsraptor-single-doc-content,
+.docsraptor-single-doc-content-placeholder {
+	margin: 0;
+	padding: 0;
+}
+
+.wp-block-docsraptor-single-doc-content.docsraptor-single-doc-content {
+	padding-top: var(--wp--preset--spacing--x-large, 60px);
+	padding-bottom: var(--wp--preset--spacing--x-large, 60px);
+}
