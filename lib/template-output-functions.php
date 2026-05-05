@@ -245,7 +245,17 @@ function docsraptor_sort_terms_tree( $terms, $collection_id = null ) {
  */
 function docsraptor_get_category_link( $term, $collection_id = null ) {
 	$link = get_term_link( $term );
-	if ( is_wp_error( $link ) || ! $collection_id ) {
+
+	if ( is_wp_error( $link ) ) {
+		return $link;
+	}
+
+	$single_doc_id = docsraptor_get_single_doc_id_for_category( $term, $collection_id );
+	if ( $single_doc_id ) {
+		return get_permalink( $single_doc_id );
+	}
+
+	if ( ! $collection_id ) {
 		return $link;
 	}
 
@@ -255,6 +265,67 @@ function docsraptor_get_category_link( $term, $collection_id = null ) {
 	}
 
 	return add_query_arg( 'docs_collection', $collection->slug, $link );
+}
+
+/**
+ * Get the only doc under a category for the active collection context.
+ *
+ * Includes child categories because category archive pages show child category docs.
+ *
+ * @param WP_Term|int $term          Docs category term or term ID.
+ * @param int|null    $collection_id Active collection ID.
+ * @return int Doc ID if exactly one doc exists, otherwise 0.
+ */
+function docsraptor_get_single_doc_id_for_category( $term, $collection_id = null ) {
+	$term_id = $term instanceof WP_Term ? (int) $term->term_id : absint( $term );
+
+	if ( ! $term_id ) {
+		return 0;
+	}
+
+	$posts = get_posts(
+		array(
+			'post_type'      => 'docs',
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
+			'posts_per_page' => 2,
+			'tax_query'      => array(
+				'relation' => 'AND',
+				array(
+					'taxonomy'         => 'docs-categories',
+					'field'            => 'term_id',
+					'terms'            => $term_id,
+					'include_children' => true,
+				),
+				docsraptor_get_collection_tax_query_clause( $collection_id ),
+			),
+		)
+	);
+
+	return 1 === count( $posts ) ? (int) $posts[0] : 0;
+}
+
+/**
+ * Redirect docs category archives with exactly one doc to that doc.
+ */
+add_action( 'template_redirect', 'docsraptor_redirect_single_doc_category_archives' );
+function docsraptor_redirect_single_doc_category_archives() {
+	if ( is_admin() || ! is_tax( 'docs-categories' ) ) {
+		return;
+	}
+
+	$term = get_queried_object();
+	if ( ! $term || ! isset( $term->term_id ) ) {
+		return;
+	}
+
+	$single_doc_id = docsraptor_get_single_doc_id_for_category( $term, docsraptor_get_current_collection_id() );
+	if ( ! $single_doc_id ) {
+		return;
+	}
+
+	wp_safe_redirect( get_permalink( $single_doc_id ), 302 );
+	exit;
 }
 
 /**
@@ -469,9 +540,10 @@ function docsraptor_term_has_content( $term, $collection_id = null ) {
  * @param int|null $current_post_id The current post ID (null for taxonomy pages).
  * @param int|null $deepest_term_id The deepest term ID for the current post.
  * @param int|null $current_term_id The current term ID (for taxonomy pages).
+ * @param bool     $expand_current  Whether to expand the current term branch.
  * @param int      $level           The current nesting level.
  */
-function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $deepest_term_id = null, $current_term_id = null, $level = 0, $collection_id = null ) {
+function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $deepest_term_id = null, $current_term_id = null, $expand_current = true, $level = 0, $collection_id = null ) {
 	// Return early if no terms.
 	if ( empty( $terms ) ) {
 		return;
@@ -524,10 +596,11 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 		$term_posts  = docsraptor_sort_posts_by_saved_order( $term_posts, $term->term_id, $collection_id );
 		$has_content = ! empty( $term_posts ) || $has_children;
 		$can_reorder = current_user_can( 'manage_options' );
+		$is_expanded = $is_current_term && $expand_current;
 		?>
 		<li class="docs-category-item <?php echo $is_current_term ? 'current' : ''; ?>" data-term-id="<?php echo esc_attr( $term->term_id ); ?>">
 			<div class="docs-category <?php echo $level > 0 ? 'child' : 'parent'; ?> <?php echo $is_current_term ? 'current' : ''; ?> <?php echo $has_content ? 'has-children' : ''; ?>">
-				<div class="docs-category-toggle <?php echo ! $has_content ? 'no-toggle' : ''; ?>" role="button" tabindex="0" aria-expanded="<?php echo $is_current_term ? 'true' : 'false'; ?>">
+				<div class="docs-category-toggle <?php echo ! $has_content ? 'no-toggle' : ''; ?>" role="button" tabindex="0" aria-expanded="<?php echo $is_expanded ? 'true' : 'false'; ?>">
 					<?php if ( $can_reorder ) : ?>
 						<button type="button" class="docs-reorder-handle docs-category-reorder-handle" aria-label="<?php echo esc_attr__( 'Reorder category', 'docsraptor' ); ?>">
 							<span aria-hidden="true">::</span>
@@ -536,7 +609,7 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 					<a href="<?php echo esc_url( docsraptor_get_category_link( $term, $collection_id ) ); ?>" class="docs-category-link"><?php echo esc_html( $term->name ); ?></a>
 				</div>
 				<?php if ( $has_content ) : ?>
-					<ul class="docs-list <?php echo $is_current_term ? 'open' : ''; ?> <?php echo $can_reorder ? 'docs-sortable-docs docs-sortable-categories' : ''; ?>" data-sort-type="mixed" data-category-id="<?php echo esc_attr( $term->term_id ); ?>" data-parent-id="<?php echo esc_attr( $term->term_id ); ?>" data-collection-id="<?php echo esc_attr( (int) $collection_id ); ?>">
+					<ul class="docs-list <?php echo $is_expanded ? 'open' : ''; ?> <?php echo $can_reorder ? 'docs-sortable-docs docs-sortable-categories' : ''; ?>" data-sort-type="mixed" data-category-id="<?php echo esc_attr( $term->term_id ); ?>" data-parent-id="<?php echo esc_attr( $term->term_id ); ?>" data-collection-id="<?php echo esc_attr( (int) $collection_id ); ?>">
 						<?php foreach ( $term_posts as $post_item ) : ?>
 							<?php
 							$is_current_post = false;
@@ -557,7 +630,7 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
 						<?php endforeach; ?>
 						<?php
 						if ( $has_children ) {
-							docsraptor_display_terms_hierarchy( $term->children, $current_post_id, $deepest_term_id, $current_term_id, $level + 1, $collection_id );
+							docsraptor_display_terms_hierarchy( $term->children, $current_post_id, $deepest_term_id, $current_term_id, $expand_current, $level + 1, $collection_id );
 						}
 						?>
 					</ul>
@@ -577,8 +650,9 @@ function docsraptor_display_terms_hierarchy( $terms, $current_post_id = null, $d
  *
  * @param int|null $current_post_id The current post ID (null for taxonomy pages).
  * @param int|null $current_term_id The current term ID (for taxonomy pages).
+ * @param bool     $expand_current  Whether to expand the current term branch.
  */
-function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = null ) {
+function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = null, $expand_current = true ) {
 	$collection_id = docsraptor_get_current_collection_id( $current_post_id );
 	?>
 	<button type="button" class="docs-collapse-all" aria-label="Collapse all categories">
@@ -650,7 +724,7 @@ function docsraptor_output_sidebar( $current_post_id = null, $current_term_id = 
 	}
 
 	if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) :
-		docsraptor_display_terms_hierarchy( $terms, $current_post_id, $deepest_term_id, $current_term_id, 0, $collection_id );
+		docsraptor_display_terms_hierarchy( $terms, $current_post_id, $deepest_term_id, $current_term_id, $expand_current, 0, $collection_id );
 	endif;
 }
 

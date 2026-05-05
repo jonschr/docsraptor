@@ -1,3 +1,17 @@
+## Version 0.3.10
+
+- Added Plugin Update Checker integration for updates from the GitHub `master` branch.
+- Added an `Update URI` plugin header for the GitHub repository.
+
+## Version 0.3.9
+
+- Pointed docs category links to the only doc in that category when the active collection context contains exactly one matching doc.
+- Redirected single-result docs category archives directly to that doc.
+
+## Version 0.3.8
+
+- Kept docs category archive sidebar branches collapsed by default while preserving current term highlighting.
+
 ## Version 0.3.7
 
 - Updated the Command/Ctrl+K shortcut to use the visible Docs Search block trigger so embedded block filters match click behavior.

@@ -9,7 +9,8 @@
  * Plugin Name:    Docs Raptor
  * Plugin URI:     https://elod.in
  * Description:    Create documentation and knowledge bases for anything.
- * Version:        0.3.7
+ * Version:        0.3.10
+ * Update URI:     https://github.com/jonschr/docsraptor
  * Author:         Jon Schroeder
  * Author URI:     https://elod.in
  * Text Domain:    docsraptor
@@ -23,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define the version of the plugin.
-define( 'DOCSRAPTOR_VERSION', '0.3.7' );
+define( 'DOCSRAPTOR_VERSION', '0.3.10' );
 
 // Set up plugin directories.
 define( 'DOCSRAPTOR_DIR', plugin_dir_path( __FILE__ ) );
@@ -33,6 +34,35 @@ define( 'DOCSRAPTOR_FILE', __FILE__ );
 
 // Plugin directory
 define( 'DOCSRAPTOR', dirname( __FILE__ ) );
+
+/**
+ * Initialize plugin updates from GitHub.
+ *
+ * @return void
+ */
+function docsraptor_init_update_checker() {
+	$update_checker_file = DOCSRAPTOR_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+
+	if ( ! file_exists( $update_checker_file ) ) {
+		return;
+	}
+
+	require_once $update_checker_file;
+
+	if ( ! class_exists( '\YahnisElsts\PluginUpdateChecker\v5\PucFactory' ) ) {
+		return;
+	}
+
+	$update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/jonschr/docsraptor/',
+		DOCSRAPTOR_FILE,
+		'docsraptor'
+	);
+
+	$update_checker->setBranch( 'master' );
+}
+
+docsraptor_init_update_checker();
 
 /**
  * Load the files

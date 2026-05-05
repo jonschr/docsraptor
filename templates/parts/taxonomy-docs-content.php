@@ -16,6 +16,7 @@ if ( ! $term || ! isset( $term->term_id ) ) {
 $is_collection_archive = isset( $term->taxonomy ) && 'docs-collections' === $term->taxonomy;
 $collection_id         = $is_collection_archive ? (int) $term->term_id : docsraptor_get_current_collection_id();
 $sidebar_term_id       = $is_collection_archive ? null : $term->term_id;
+$expand_sidebar_term   = false;
 $category_parent_id    = $is_collection_archive ? 0 : $term->term_id;
 ?>
 
@@ -23,7 +24,7 @@ $category_parent_id    = $is_collection_archive ? 0 : $term->term_id;
 	<!-- Left Sidebar (desktop) -->
 	<div class="docs-sidebar docs-sidebar-desktop">
 		<div class="docs-sidebar-content">
-			<?php docsraptor_output_sidebar( null, $sidebar_term_id ); ?>
+			<?php docsraptor_output_sidebar( null, $sidebar_term_id, $expand_sidebar_term ); ?>
 		</div>
 	</div>
 
@@ -34,7 +35,7 @@ $category_parent_id    = $is_collection_archive ? 0 : $term->term_id;
 			Menu
 		</summary>
 		<div class="docs-sidebar-content">
-			<?php docsraptor_output_sidebar( null, $sidebar_term_id ); ?>
+			<?php docsraptor_output_sidebar( null, $sidebar_term_id, $expand_sidebar_term ); ?>
 		</div>
 	</details>
 
