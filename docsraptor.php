@@ -9,7 +9,7 @@
  * Plugin Name:    Docs Raptor
  * Plugin URI:     https://elod.in
  * Description:    Create documentation and knowledge bases for anything.
- * Version:        0.3.10
+ * Version:        0.3.17
  * Update URI:     https://github.com/jonschr/docsraptor
  * Author:         Jon Schroeder
  * Author URI:     https://elod.in
@@ -24,13 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define the version of the plugin.
-define( 'DOCSRAPTOR_VERSION', '0.3.10' );
+define( 'DOCSRAPTOR_VERSION', '0.3.17' );
 
 // Set up plugin directories.
 define( 'DOCSRAPTOR_DIR', plugin_dir_path( __FILE__ ) );
 define( 'DOCSRAPTOR_PATH', plugin_dir_url( __FILE__ ) );
 define( 'DOCSRAPTOR_BASENAME', plugin_basename( __FILE__ ) );
 define( 'DOCSRAPTOR_FILE', __FILE__ );
+define( 'DOCSRAPTOR_LEMON_PRODUCT_ID', 1030500 );
 
 // Plugin directory
 define( 'DOCSRAPTOR', dirname( __FILE__ ) );

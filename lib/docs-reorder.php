@@ -14,6 +14,10 @@ add_action( 'wp_ajax_docsraptor_reorder_docs', 'docsraptor_ajax_reorder_docs' );
  * Save administrator drag-and-drop order for docs within a category.
  */
 function docsraptor_ajax_reorder_docs() {
+	if ( function_exists( 'docsraptor_require_active_license_for_ajax' ) ) {
+		docsraptor_require_active_license_for_ajax();
+	}
+
 	if ( ! current_user_can( 'manage_options' ) ) {
 		wp_send_json_error(
 			array(

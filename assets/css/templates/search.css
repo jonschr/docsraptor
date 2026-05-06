@@ -173,6 +173,13 @@
 	color: var(--docsraptor-text-color);
 }
 
+.docs-search-message {
+	margin-top: 6px;
+	color: #fff;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
 .search-path {
 	opacity: 0.6;
 	font-size: 14px;

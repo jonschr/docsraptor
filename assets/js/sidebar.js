@@ -3,8 +3,52 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
 	const toggles = document.querySelectorAll('.docs-category-toggle');
+	const sidebarScrollContainers = document.querySelectorAll(
+		'.docs-sidebar-desktop .docs-sidebar-content'
+	);
+	const sidebarScrollKey = 'docsraptorSidebarScrollTop';
 	const canReorder =
 		window.docsraptorSidebar && window.docsraptorSidebar.canReorder;
+
+	const saveSidebarScrollPosition = function () {
+		const sidebar = sidebarScrollContainers[0];
+
+		if (!sidebar || !window.sessionStorage) {
+			return;
+		}
+
+		window.sessionStorage.setItem(sidebarScrollKey, String(sidebar.scrollTop));
+	};
+
+	const restoreSidebarScrollPosition = function () {
+		const savedScrollTop =
+			window.sessionStorage &&
+			window.sessionStorage.getItem(sidebarScrollKey);
+
+		if (savedScrollTop === null) {
+			return;
+		}
+
+		sidebarScrollContainers.forEach((sidebar) => {
+			sidebar.scrollTop = parseInt(savedScrollTop, 10) || 0;
+		});
+	};
+
+	restoreSidebarScrollPosition();
+
+	sidebarScrollContainers.forEach((sidebar) => {
+		sidebar.addEventListener('scroll', saveSidebarScrollPosition, {
+			passive: true,
+		});
+
+		sidebar.addEventListener('click', function (e) {
+			if (e.target.closest('a')) {
+				saveSidebarScrollPosition();
+			}
+		});
+	});
+
+	window.addEventListener('beforeunload', saveSidebarScrollPosition);
 
 	// Collapse All button functionality
 	const collapseButtons = document.querySelectorAll('.docs-collapse-all');

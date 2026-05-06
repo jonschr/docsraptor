@@ -396,16 +396,19 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function highlightText(text, query) {
-		const escapedQuery = escapeRegExp(query);
-		if (!escapedQuery) {
+		const queryTerms = getQueryTerms(query);
+		if (!queryTerms.length) {
 			return escapeHtml(text);
 		}
 
-		const matcher = new RegExp('(' + escapedQuery + ')', 'gi');
+		const matcher = new RegExp(
+			'(' + queryTerms.map(escapeRegExp).join('|') + ')',
+			'gi'
+		);
 		return String(text)
 			.split(matcher)
 			.map((part) =>
-				part.toLowerCase() === query.toLowerCase()
+				queryTerms.includes(part.toLowerCase())
 					? '<mark class="search-highlight">' +
 						escapeHtml(part) +
 						'</mark>'
@@ -449,6 +452,78 @@ document.addEventListener('DOMContentLoaded', function () {
 			.join(' ');
 	}
 
+	function getQueryTerms(query) {
+		const stopWords = [
+			'a',
+			'an',
+			'and',
+			'are',
+			'as',
+			'at',
+			'for',
+			'from',
+			'in',
+			'is',
+			'of',
+			'on',
+			'or',
+			'the',
+			'to',
+			'with',
+		];
+
+		return normalizeSearchText(query)
+			.split(/\s+/)
+			.map((term) => term.trim())
+			.filter((term) => term && !stopWords.includes(term));
+	}
+
+	function normalizeSearchText(text) {
+		return String(text || '')
+			.toLowerCase()
+			.replace(/&nbsp;/g, ' ')
+			.replace(/[^\p{L}\p{N}]+/gu, ' ')
+			.trim();
+	}
+
+	function getSearchTokens(text) {
+		return normalizeSearchText(text)
+			.split(/\s+/)
+			.map((term) => term.trim())
+			.filter(Boolean);
+	}
+
+	function scorePostMatch(post, queryTerms) {
+		const title = normalizeSearchText(stripHtml(post.title.rendered));
+		const terms = normalizeSearchText(getSearchableTermNames(post));
+		const content = normalizeSearchText(stripHtml(post.content.rendered));
+		const searchableText = [title, terms, content].join(' ');
+		const searchableTokens = new Set(getSearchTokens(searchableText));
+
+		if (
+			queryTerms.length === 0 ||
+			!queryTerms.every(
+				(term) => searchableTokens.has(term) || searchableText.includes(term)
+			)
+		) {
+			return 0;
+		}
+
+		return queryTerms.reduce((score, term) => {
+			if (title.includes(term)) {
+				score += 8;
+			}
+			if (terms.includes(term)) {
+				score += 4;
+			}
+			if (content.includes(term)) {
+				score += 1;
+			}
+
+			return score;
+		}, 0);
+	}
+
 	function filterSuggestions(query) {
 		const filter = activeFilter || getTriggerFilter({});
 		const filterKey = getFilterCacheKey(filter);
@@ -461,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		modalSuggestions.classList.add('hover-disabled');
 
 		// Filter data based on search query
-		const normalizedQuery = query.toLowerCase();
+		const queryTerms = getQueryTerms(query);
 		const filteredData = allDocs
 			.filter((post) => {
 				if (filter.type === 'all') {
@@ -479,17 +554,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 				return postCollections.length === 0;
 			})
-			.filter((post) => {
-				const searchableText = [
-					post.title.rendered,
-					stripHtml(post.content.rendered),
-					getSearchableTermNames(post),
-				]
-					.join(' ')
-					.toLowerCase();
-
-				return searchableText.includes(normalizedQuery);
+			.map((post) => {
+				return {
+					post,
+					score: scorePostMatch(post, queryTerms),
+				};
 			})
+			.filter((result) => result.score > 0)
+			.sort((a, b) => b.score - a.score)
+			.map((result) => result.post)
 			.slice(0, 10); // Limit to 10 results
 
 		if (filteredData.length > 0) {

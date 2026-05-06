@@ -1,3 +1,34 @@
+## Version 0.3.17
+
+- Preserved the desktop docs sidebar scroll position when navigating between single docs and docs taxonomy pages.
+
+## Version 0.3.16
+
+- Normalized docs search matching into tokens so numeric and word query terms match regardless of order.
+
+## Version 0.3.15
+
+- Ignored common connector words in docs search queries so searches like "adding and deleting" match the meaningful terms.
+
+## Version 0.3.14
+
+- Improved docs search matching so multi-word queries can match terms found separately across a doc title, terms, and content.
+- Added simple search result scoring to prioritize title and taxonomy matches.
+
+## Version 0.3.13
+
+- Reduced spacing above the empty search message.
+
+## Version 0.3.12
+
+- Improved empty search message styling in the docs search modal.
+
+## Version 0.3.11
+
+- Added Lemon Squeezy licensing for Docs Raptor with product ID 1030500.
+- Added a Docs Raptor licensing admin screen and plugin action link.
+- Disabled backend docs editing, taxonomy management, REST saves, and drag-and-drop reordering when unlicensed while leaving frontend docs and plugin updates available.
+
 ## Version 0.3.10
 
 - Added Plugin Update Checker integration for updates from the GitHub `master` branch.
